@@ -15,7 +15,6 @@
     --desk-dark:#8f6a42;
     --card:#ffffff;
     --line:#d8cdb9;
-    --ph-line:#c7bda9;
   }
   *{box-sizing:border-box}
   body{
@@ -44,9 +43,8 @@
     position:relative;
     width:900px;
     max-width:100%;
-    height:640px;
-    background:
-      repeating-linear-gradient(90deg, var(--floor-a) 0 40px, var(--floor-b) 40px 80px);
+    height:680px;
+    background:repeating-linear-gradient(90deg, var(--floor-a) 0 40px, var(--floor-b) 40px 80px);
     border:10px solid var(--wall);
     border-radius:6px;
     box-shadow:0 20px 50px rgba(0,0,0,.45);
@@ -54,54 +52,25 @@
   }
   .desk{
     position:absolute;
-    width:120px;
+    width:130px;
     transform:translate(-50%, -100%);
     text-align:center;
+    pointer-events:none;
   }
   .desk-top{
-    width:100px;
+    width:104px;
     height:44px;
     margin:0 auto;
     background:linear-gradient(180deg, var(--desk), var(--desk-dark));
     border-radius:4px;
     box-shadow:0 3px 0 rgba(0,0,0,.25), inset 0 2px 4px rgba(255,255,255,.2);
   }
-  .desk.placeholder .desk-top{
-    background:none;
-    border:2px dashed var(--ph-line);
-    box-shadow:none;
-  }
-  .desk-label{
-    margin-top:6px;
-    font-size:11px;
-    line-height:1.5;
-  }
-  .desk-room{
-    font-weight:700;
-    color:var(--ink);
-  }
-  .desk-name{
-    font-size:10.5px;
-    color:var(--ink-soft);
-  }
-  .desk.placeholder .desk-room,
-  .desk.placeholder .desk-name{
-    color:#a89d89;
-  }
-  .desk-tag{
-    display:inline-block;
-    font-size:9px;
-    letter-spacing:.08em;
-    color:#a89d89;
-    border:1px solid var(--ph-line);
-    border-radius:99px;
-    padding:1px 8px;
-    margin-top:3px;
-  }
+  .desk-label{ margin-top:6px; font-size:11px; line-height:1.5 }
+  .desk-room{ font-weight:700; color:var(--ink) }
+  .desk-name{ font-size:10.5px; color:var(--ink-soft) }
   .accent-dot{
     display:inline-block;
-    width:6px;
-    height:6px;
+    width:6px; height:6px;
     border-radius:50%;
     margin-right:4px;
     vertical-align:middle;
@@ -112,8 +81,6 @@
     width:144px;
     height:144px;
     transform:translate(-50%, -100%);
-    image-rendering:pixelated;
-    image-rendering:-moz-crisp-edges;
     pointer-events:none;
     will-change:left, top;
   }
@@ -127,7 +94,7 @@
   .bubble{
     position:absolute;
     left:50%;
-    top:-14px;
+    top:-8px;
     transform:translate(-50%,-100%);
     background:var(--card);
     border:1px solid var(--line);
@@ -140,7 +107,7 @@
     transition:opacity .25s ease;
     box-shadow:0 4px 10px rgba(0,0,0,.15);
   }
-  .bubble.show{opacity:1}
+  .bubble.show{ opacity:1 }
   .bubble::after{
     content:"";
     position:absolute;
@@ -158,192 +125,182 @@
     text-align:center;
     line-height:1.8;
   }
-  .legend b{color:#e7dcc6}
+  .legend b{ color:#e7dcc6 }
 </style>
 </head>
 <body>
 
 <h1>Munder Difflin — 制作中プレビュー</h1>
-<p class="sub">9部屋のうち2部屋だけ稼働中。残りは素材が揃い次第、机に座らせます。</p>
+<p class="sub">9部屋・9名が稼働中。背景とUIパネルはCodex復活後に本実装します。</p>
 
-<div class="stage" id="stage">
-  <!-- 机（9部屋ぶん・3×3） -->
-  <div class="desk" data-room="survey" style="left:140px; top:170px;">
-    <div class="desk-top"></div>
-    <div class="desk-label">
-      <div class="desk-room"><span class="accent-dot" style="background:#b8433a"></span>調査室</div>
-      <div class="desk-name">ヴェリティ</div>
-      <div class="desk-tag">準備中</div>
-    </div>
-  </div>
-
-  <div class="desk placeholder" data-room="coach" style="left:440px; top:170px;">
-    <div class="desk-top"></div>
-    <div class="desk-label">
-      <div class="desk-room"><span class="accent-dot" style="background:#b07c1e"></span>準備の間</div>
-      <div class="desk-name">オーレリア</div>
-      <div class="desk-tag">準備中</div>
-    </div>
-  </div>
-
-  <div class="desk placeholder" data-room="archive" style="left:740px; top:170px;">
-    <div class="desk-top"></div>
-    <div class="desk-label">
-      <div class="desk-room"><span class="accent-dot" style="background:#2f6b4f"></span>記録の間</div>
-      <div class="desk-name">シルヴィア</div>
-      <div class="desk-tag">準備中</div>
-    </div>
-  </div>
-
-  <div class="desk" id="desk-clarice" style="left:140px; top:380px;">
-    <div class="desk-top"></div>
-    <div class="desk-label">
-      <div class="desk-room"><span class="accent-dot" style="background:#6a4fa0"></span>受付の間</div>
-      <div class="desk-name">クラリス</div>
-    </div>
-  </div>
-
-  <div class="desk placeholder" data-room="desk" style="left:440px; top:380px;">
-    <div class="desk-top"></div>
-    <div class="desk-label">
-      <div class="desk-room"><span class="accent-dot" style="background:#3b4b8a"></span>文机の間</div>
-      <div class="desk-name">セリーヌ</div>
-      <div class="desk-tag">準備中</div>
-    </div>
-  </div>
-
-  <div class="desk" id="desk-lumiere" style="left:740px; top:380px;">
-    <div class="desk-top"></div>
-    <div class="desk-label">
-      <div class="desk-room"><span class="accent-dot" style="background:#3f9bb0"></span>画室</div>
-      <div class="desk-name">リュミエール</div>
-    </div>
-  </div>
-
-  <div class="desk placeholder" data-room="listen" style="left:140px; top:590px;">
-    <div class="desk-top"></div>
-    <div class="desk-label">
-      <div class="desk-room"><span class="accent-dot" style="background:#c46a86"></span>聞き取りの間</div>
-      <div class="desk-name">ロザリー</div>
-      <div class="desk-tag">準備中</div>
-    </div>
-  </div>
-
-  <div class="desk placeholder" data-room="schedule" style="left:440px; top:590px;">
-    <div class="desk-top"></div>
-    <div class="desk-label">
-      <div class="desk-room"><span class="accent-dot" style="background:#9b8fc2"></span>手帳の間</div>
-      <div class="desk-name">イリス</div>
-      <div class="desk-tag">準備中</div>
-    </div>
-  </div>
-
-  <div class="desk placeholder" data-room="workshop" style="left:740px; top:590px;">
-    <div class="desk-top"></div>
-    <div class="desk-label">
-      <div class="desk-room"><span class="accent-dot" style="background:#c9772e"></span>工房</div>
-      <div class="desk-name">コレット</div>
-      <div class="desk-tag">準備中</div>
-    </div>
-  </div>
-
-  <!-- 稼働キャラクター -->
-  <div class="sprite" id="spr-clarice">
-    <div class="bubble" id="bub-clarice"></div>
-    <img id="img-clarice" src="Clarice_00_idle_48x48.png" alt="クラリス">
-  </div>
-  <div class="sprite" id="spr-lumiere">
-    <div class="bubble" id="bub-lumiere"></div>
-    <img id="img-lumiere" src="Lumiere_01_idle_48x48.png" alt="リュミエール">
-  </div>
-</div>
+<div class="stage" id="stage"></div>
 
 <p class="legend">
-  <b>クラリス</b>が時々<b>リュミエール</b>のもとへ様子を見に行きます。<br>
-  素材が揃ったキャラクターから、上の空き机に順番に座らせていきます。
+  各自が自分の机で作業しつつ、時々同じ列の誰かを訪ねて一言交わします。<br>
+  動きは仮のループです。実際のファイル更新と連動させるのは今後の実装。
 </p>
 
 <script>
 /* ============================================================
-   キャラクター定義
-   ここに1体分の sprites を足すだけで、その机に人が座る設計
+   ROSTER — ここが唯一の拡張点
+   1体分（部屋・座標・アクセント色・7枚のsprite・セリフ）を
+   足すだけで、その机に人が座って動き出す
    ============================================================ */
-const ROSTER = {
-  clarice: {
-    home: { x: 140, y: 380 },
-    sprites: {
-      idle:      "Clarice_00_idle_48x48.png",
-      working:   "Clarice_01_working_48x48.png",
-      walkLeft:  ["Clarice_04_walk_left_1_48x48.png",  "Clarice_05_walk_left_2_48x48.png"],
-      walkRight: ["Clarice_06_walk_right_1_48x48.png", "Clarice_07_walk_right_2_48x48.png"]
+const ROSTER = [
+  {
+    id:"clarice", name:"クラリス", room:"受付の間", accent:"#6a4fa0",
+    col:0, row:1,
+    sprites:{
+      idle:"Clarice_00_idle_48x48.png", working:"Clarice_01_working_48x48.png",
+      walkLeft:["Clarice_04_walk_left_1_48x48.png","Clarice_05_walk_left_2_48x48.png"],
+      walkRight:["Clarice_06_walk_right_1_48x48.png","Clarice_07_walk_right_2_48x48.png"]
     },
-    lines: ["リュミエール様、進み具合はいかがですか？", "こちら、確認いたしますわね。", "とても良い出来ですわ。"]
+    lines:["みなさん、進み具合はいかがですか？","台帳に控えておきますわ。"]
   },
-  lumiere: {
-    home: { x: 740, y: 380 },
-    sprites: {
-      idle:      "Lumiere_01_idle_48x48.png",
-      working:   "Lumiere_02_working_48x48.png",
-      walkLeft:  ["Lumiere_04_walk_left_1_48x48.png",  "Lumiere_05_walk_left_2_48x48.png"],
-      walkRight: ["Lumiere_06_walk_right_1_48x48.png", "Lumiere_07_walk_right_2_48x48.png"]
+  {
+    id:"verity", name:"ヴェリティ", room:"調査室", accent:"#b8433a",
+    col:0, row:0,
+    sprites:{
+      idle:"Verity_01_idle_48x48.png", working:"Verity_02_working_48x48.png",
+      walkLeft:["Verity_04_walk_left_1_48x48.png","Verity_05_walk_left_2_48x48.png"],
+      walkRight:["Verity_06_walk_right_1_48x48.png","Verity_07_walk_right_2_48x48.png"]
     },
-    lines: ["いま描いておりますわ。", "もう少しで仕上がります。"]
+    lines:["この会社、少し気になりますね。","裏を取ってまいります。"]
+  },
+  {
+    id:"aurelia", name:"オーレリア", room:"準備の間", accent:"#b07c1e",
+    col:1, row:0,
+    sprites:{
+      idle:"Aurelia_01_idle_48x48.png", working:"Aurelia_02_working_48x48.png",
+      walkLeft:["Aurelia_04_walk_left_1_48x48.png","Aurelia_05_walk_left_2_48x48.png"],
+      walkRight:["Aurelia_06_walk_right_1_48x48.png","Aurelia_07_walk_right_2_48x48.png"]
+    },
+    lines:["その答え方、とても良いですよ。","本番のつもりでいきましょう。"]
+  },
+  {
+    id:"sylvia", name:"シルヴィア", room:"記録の間", accent:"#2f6b4f",
+    col:2, row:0,
+    sprites:{
+      idle:"Sylvia_01_idle_48x48.png", working:"Sylvia_02_working_48x48.png",
+      walkLeft:["Sylvia_04_walk_left_1_48x48.png","Sylvia_05_walk_left_2_48x48.png"],
+      walkRight:["Sylvia_06_walk_right_1_48x48.png","Sylvia_07_walk_right_2_48x48.png"]
+    },
+    lines:["先ほどの要点、まとめました。","記録に残しておきます。"]
+  },
+  {
+    id:"celine", name:"セリーヌ", room:"文机の間", accent:"#3b4b8a",
+    col:1, row:1,
+    sprites:{
+      idle:"Celine_01_idle_48x48.png", working:"Celine_02_working_48x48.png",
+      walkLeft:["Celine_04_walk_left_1_48x48.png","Celine_05_walk_left_2_48x48.png"],
+      walkRight:["Celine_06_walk_right_1_48x48.png","Celine_07_walk_right_2_48x48.png"]
+    },
+    lines:["文面、整えておきますわ。","この一文は削りましょう。"]
+  },
+  {
+    id:"lumiere", name:"リュミエール", room:"画室", accent:"#3f9bb0",
+    col:2, row:1,
+    sprites:{
+      idle:"Lumiere_01_idle_48x48.png", working:"Lumiere_02_working_48x48.png",
+      walkLeft:["Lumiere_04_walk_left_1_48x48.png","Lumiere_05_walk_left_2_48x48.png"],
+      walkRight:["Lumiere_06_walk_right_1_48x48.png","Lumiere_07_walk_right_2_48x48.png"]
+    },
+    lines:["いま描いております。","もう少しで仕上がります。"]
+  },
+  {
+    id:"rosalie", name:"ロザリー", room:"聞き取りの間", accent:"#c46a86",
+    col:0, row:2,
+    sprites:{
+      idle:"Rosalie_01_idle_48x48.png", working:"Rosalie_02_working_48x48.png",
+      walkLeft:["Rosalie_04_walk_left_1_48x48.png","Rosalie_05_walk_left_2_48x48.png"],
+      walkRight:["Rosalie_06_walk_right_1_48x48.png","Rosalie_07_walk_right_2_48x48.png"]
+    },
+    lines:["もう少し詳しく伺えますか？","なるほど、そういうことですね。"]
+  },
+  {
+    id:"iris", name:"イリス", room:"手帳の間", accent:"#9b8fc2",
+    col:1, row:2,
+    sprites:{
+      idle:"Iris_01_idle_48x48.png", working:"Iris_02_working_48x48.png",
+      walkLeft:["Iris_04_walk_left_1_48x48.png","Iris_05_walk_left_2_48x48.png"],
+      walkRight:["Iris_06_walk_right_1_48x48.png","Iris_07_walk_right_2_48x48.png"]
+    },
+    lines:["次の期限は明後日です。","今日はここまでで十分ですわ。"]
+  },
+  {
+    id:"colette", name:"コレット", room:"工房", accent:"#c9772e",
+    col:2, row:2,
+    sprites:{
+      idle:"Colette_01_idle_48x48.png", working:"Colette_02_working_48x48.png",
+      walkLeft:["Colette_04_walk_left_1_48x48.png","Colette_05_walk_left_2_48x48.png"],
+      walkRight:["Colette_06_walk_right_1_48x48.png","Colette_07_walk_right_2_48x48.png"]
+    },
+    lines:["ここ、組み直しておきます。","動くようになりました。"]
   }
-};
+];
 
-const WALK_SPEED = 90;       // px/秒
-const FRAME_MS   = 220;      // 歩行の脚の入れ替え間隔
+/* レイアウト：3列 × 3行のグリッド */
+const COL_X = [150, 450, 750];
+const ROW_Y = [190, 410, 620];
+const WALK_SPEED = 95;   // px/秒
+const FRAME_MS   = 210;  // 歩行フレームの入れ替え
 
-function makeController(key){
-  const data = ROSTER[key];
-  const el   = document.getElementById("spr-" + key);
-  const img  = document.getElementById("img-" + key);
-  const bub  = document.getElementById("bub-" + key);
-  const pos  = { x: data.home.x, y: data.home.y };
-  let frameToggle = false;
-  let lastFrameTime = 0;
+const stage = document.getElementById("stage");
 
-  function place(){
-    el.style.left = pos.x + "px";
-    el.style.top  = pos.y + "px";
-  }
-  function setSprite(src){ img.src = src; }
-  function say(text, ms){
+function makeAgent(def){
+  const home = { x: COL_X[def.col], y: ROW_Y[def.row] };
+
+  // 机
+  const desk = document.createElement("div");
+  desk.className = "desk";
+  desk.style.left = home.x + "px";
+  desk.style.top  = home.y + "px";
+  desk.innerHTML =
+    '<div class="desk-top"></div>' +
+    '<div class="desk-label">' +
+      '<div class="desk-room"><span class="accent-dot" style="background:' + def.accent + '"></span>' + def.room + '</div>' +
+      '<div class="desk-name">' + def.name + '</div>' +
+    '</div>';
+  stage.appendChild(desk);
+
+  // キャラクター
+  const spr = document.createElement("div");
+  spr.className = "sprite";
+  const bub = document.createElement("div");
+  bub.className = "bubble";
+  const img = document.createElement("img");
+  img.alt = def.name;
+  img.src = def.sprites.idle;
+  spr.appendChild(bub);
+  spr.appendChild(img);
+  stage.appendChild(spr);
+
+  const pos = { x: home.x, y: home.y };
+  function place(){ spr.style.left = pos.x + "px"; spr.style.top = pos.y + "px"; }
+  function set(src){ img.src = src; }
+  function say(text){
     bub.textContent = text;
     bub.classList.add("show");
-    setTimeout(()=> bub.classList.remove("show"), ms || 2200);
+    setTimeout(()=> bub.classList.remove("show"), 2300);
   }
+  function poseIdle(){ set(def.sprites.idle); }
+  function poseWork(){ set(def.sprites.working); }
 
-  function idleAt(pose){
-    setSprite(pose === "working" ? data.sprites.working : data.sprites.idle);
-  }
-
-  // 目的地まで歩かせ、着いたら resolve する
-  function walkTo(targetX, onTick){
-    return new Promise(resolve => {
-      const dir = targetX > pos.x ? "right" : "left";
-      const frames = dir === "right" ? data.sprites.walkRight : data.sprites.walkLeft;
-      lastFrameTime = 0;
-
+  function walkTo(targetX){
+    return new Promise(resolve=>{
+      const frames = targetX > pos.x ? def.sprites.walkRight : def.sprites.walkLeft;
+      let last = 0;
       function step(t){
-        if (!lastFrameTime) lastFrameTime = t;
-        const dt = (t - lastFrameTime) / 1000;
-        lastFrameTime = t;
-
-        const dist = WALK_SPEED * dt;
+        if (!last) last = t;
+        const dt = (t - last) / 1000; last = t;
         const remaining = targetX - pos.x;
+        const dist = WALK_SPEED * dt;
         if (Math.abs(remaining) <= dist){
-          pos.x = targetX;
-          place();
-          resolve();
-          return;
+          pos.x = targetX; place(); poseIdle(); resolve(); return;
         }
         pos.x += Math.sign(remaining) * dist;
         place();
-
-        frameToggle = Math.floor(t / FRAME_MS) % 2 === 0;
-        setSprite(frameToggle ? frames[0] : frames[1]);
-        if (onTick) onTick();
+        set(Math.floor(t / FRAME_MS) % 2 === 0 ? frames[0] : frames[1]);
         requestAnimationFrame(step);
       }
       requestAnimationFrame(step);
@@ -351,63 +308,52 @@ function makeController(key){
   }
 
   place();
-  idleAt("idle");
-
-  return { pos, place, setSprite, say, idleAt, walkTo };
+  poseIdle();
+  return { def, home, pos, place, say, poseIdle, poseWork, walkTo };
 }
 
-const clarice = makeController("clarice");
-const lumiere = makeController("lumiere");
+const agents = {};
+ROSTER.forEach(def => agents[def.id] = makeAgent(def));
 
-function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
-function pick(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const pick  = a => a[Math.floor(Math.random() * a.length)];
 
-/* ============================================================
-   クラリスの巡回：机で作業 → たまにリュミエールを訪ねる → 戻る
-   ============================================================ */
-async function claricesLoop(){
-  while (true){
-    clarice.idleAt("working");
-    await sleep(3000 + Math.random() * 3000);
-    clarice.idleAt("idle");
-    await sleep(1500 + Math.random() * 2000);
-
-    // リュミエールを訪問
-    const visitX = ROSTER.lumiere.home.x - 60;
-    await clarice.walkTo(visitX);
-    clarice.idleAt("idle");
-    clarice.say(pick(ROSTER.clarice.lines), 2400);
-    lumiere.idleAt("idle");
-
-    await sleep(2600);
-    lumiere.say(pick(ROSTER.lumiere.lines), 2200);
-    await sleep(2400);
-
-    // 自分の机へ戻る
-    await clarice.walkTo(ROSTER.clarice.home.x);
-    clarice.idleAt("working");
-    lumiere.idleAt("working");
-
-    await sleep(4000 + Math.random() * 4000);
-  }
+/* 同じ列（row）にいる他のagentを返す */
+function rowMates(me){
+  return ROSTER.filter(d => d.row === me.def.row && d.id !== me.def.id)
+               .map(d => agents[d.id]);
 }
 
-/* リュミエールは机で作業しつつ、時々手を止める */
-async function lumieresLoop(){
+async function agentLoop(me){
+  await sleep(Math.random() * 6000); // 開始をばらけさせる
   while (true){
-    await sleep(2500 + Math.random() * 3500);
-    if (lumiere.pos.x === ROSTER.lumiere.home.x){
-      lumiere.idleAt("working");
-      await sleep(400);
-      lumiere.idleAt("idle");
-      await sleep(600);
-      lumiere.idleAt("working");
+    // 机で作業
+    me.poseWork();
+    await sleep(3000 + Math.random() * 4000);
+    me.poseIdle();
+    await sleep(1200 + Math.random() * 2500);
+
+    // 6割の確率で、同じ列の誰かを訪ねる
+    if (Math.random() < 0.6){
+      const mates = rowMates(me);
+      if (mates.length){
+        const target = pick(mates);
+        const side = target.home.x > me.home.x ? -64 : 64;
+        await me.walkTo(target.home.x + side);
+        me.say(pick(me.def.lines));
+        target.poseIdle();
+        await sleep(2400);
+        if (Math.random() < 0.5){ target.say(pick(target.def.lines)); await sleep(2200); }
+        await me.walkTo(me.home.x);
+        target.poseWork();
+      }
     }
+
+    await sleep(3000 + Math.random() * 6000);
   }
 }
 
-claricesLoop();
-lumieresLoop();
+Object.values(agents).forEach(agentLoop);
 </script>
 </body>
 </html>
