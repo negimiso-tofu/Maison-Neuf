@@ -208,11 +208,12 @@
 const ROSTER = [
   {
     id:"clarice", name:"クラリス", room:"受付の間", accent:"#6a4fa0",
-    activity:{"source":"claude","skills":[]},
+    activity:{"source":"claude","skills":[],"tools":[]},
     role:"統括・窓口（Claude Code）",
     col:0, row:1,
     sprites:{
       idle:"Clarice_00_idle_48x48.png", working:"Clarice_01_working_48x48.png",
+      back:"Clarice_02_back_48x48.png",
       walkLeft:["Clarice_04_walk_left_1_48x48.png","Clarice_05_walk_left_2_48x48.png"],
       walkRight:["Clarice_06_walk_right_1_48x48.png","Clarice_07_walk_right_2_48x48.png"]
     },
@@ -220,10 +221,11 @@ const ROSTER = [
   },
   {
     id:"verity", name:"ヴェリティ", room:"調査室", accent:"#b8433a",
-    activity:{"source":"skill","skills":["company-check","案件応募"]},
+    activity:{"source":"skill","skills":["company-check","案件応募"],"tools":["WebSearch","WebFetch"]},
     col:0, row:0,
     sprites:{
       idle:"Verity_01_idle_48x48.png", working:"Verity_02_working_48x48.png",
+      back:"Verity_03_back_48x48.png",
       walkLeft:["Verity_04_walk_left_1_48x48.png","Verity_05_walk_left_2_48x48.png"],
       walkRight:["Verity_06_walk_right_1_48x48.png","Verity_07_walk_right_2_48x48.png"]
     },
@@ -231,10 +233,11 @@ const ROSTER = [
   },
   {
     id:"aurelia", name:"オーレリア", room:"準備の間", accent:"#b07c1e",
-    activity:{"source":"skill","skills":["kigyobetsu-mensetsu"]},
+    activity:{"source":"skill","skills":["kigyobetsu-mensetsu"],"tools":["Agent","Task"]},
     col:1, row:0,
     sprites:{
       idle:"Aurelia_01_idle_48x48.png", working:"Aurelia_02_working_48x48.png",
+      back:"Aurelia_03_back_48x48.png",
       walkLeft:["Aurelia_04_walk_left_1_48x48.png","Aurelia_05_walk_left_2_48x48.png"],
       walkRight:["Aurelia_06_walk_right_1_48x48.png","Aurelia_07_walk_right_2_48x48.png"]
     },
@@ -242,10 +245,11 @@ const ROSTER = [
   },
   {
     id:"sylvia", name:"シルヴィア", room:"記録の間", accent:"#2f6b4f",
-    activity:{"source":"skill","skills":["mensetsu-kiroku"]},
+    activity:{"source":"skill","skills":["mensetsu-kiroku"],"tools":["Grep","Glob"]},
     col:2, row:0,
     sprites:{
       idle:"Sylvia_01_idle_48x48.png", working:"Sylvia_02_working_48x48.png",
+      back:"Sylvia_03_back_48x48.png",
       walkLeft:["Sylvia_04_walk_left_1_48x48.png","Sylvia_05_walk_left_2_48x48.png"],
       walkRight:["Sylvia_06_walk_right_1_48x48.png","Sylvia_07_walk_right_2_48x48.png"]
     },
@@ -253,10 +257,11 @@ const ROSTER = [
   },
   {
     id:"celine", name:"セリーヌ", room:"文机の間", accent:"#3b4b8a",
-    activity:{"source":"skill","skills":["議事録","報告書","提案書","メール"]},
+    activity:{"source":"skill","skills":["議事録","報告書","提案書","メール"],"tools":["Write","Edit","NotebookEdit"]},
     col:1, row:1,
     sprites:{
       idle:"Celine_01_idle_48x48.png", working:"Celine_02_working_48x48.png",
+      back:"Celine_03_back_48x48.png",
       walkLeft:["Celine_04_walk_left_1_48x48.png","Celine_05_walk_left_2_48x48.png"],
       walkRight:["Celine_06_walk_right_1_48x48.png","Celine_07_walk_right_2_48x48.png"]
     },
@@ -264,11 +269,12 @@ const ROSTER = [
   },
   {
     id:"lumiere", name:"リュミエール", room:"画室", accent:"#3f9bb0",
-    activity:{"source":"images","skills":[]},
+    activity:{"source":"images","skills":[],"tools":["Artifact","SendUserFile"]},
     role:"画像生成（GPT）",
     col:2, row:1,
     sprites:{
       idle:"Lumiere_01_idle_48x48.png", working:"Lumiere_02_working_48x48.png",
+      back:"Lumiere_03_back_48x48.png",
       walkLeft:["Lumiere_04_walk_left_1_48x48.png","Lumiere_05_walk_left_2_48x48.png"],
       walkRight:["Lumiere_06_walk_right_1_48x48.png","Lumiere_07_walk_right_2_48x48.png"]
     },
@@ -276,10 +282,11 @@ const ROSTER = [
   },
   {
     id:"rosalie", name:"ロザリー", room:"聞き取りの間", accent:"#c46a86",
-    activity:{"source":"skill","skills":["商談ヒアリング"]},
+    activity:{"source":"skill","skills":["商談ヒアリング"],"tools":["AskUserQuestion"]},
     col:0, row:2,
     sprites:{
       idle:"Rosalie_01_idle_48x48.png", working:"Rosalie_02_working_48x48.png",
+      back:"Rosalie_03_back_48x48.png",
       walkLeft:["Rosalie_04_walk_left_1_48x48.png","Rosalie_05_walk_left_2_48x48.png"],
       walkRight:["Rosalie_06_walk_right_1_48x48.png","Rosalie_07_walk_right_2_48x48.png"]
     },
@@ -287,10 +294,11 @@ const ROSTER = [
   },
   {
     id:"iris", name:"イリス", room:"手帳の間", accent:"#9b8fc2",
-    activity:{"source":"skill","skills":["タスク整理","朝の準備"]},
+    activity:{"source":"skill","skills":["タスク整理","朝の準備"],"tools":["TodoWrite","ScheduleWakeup"]},
     col:1, row:2,
     sprites:{
       idle:"Iris_01_idle_48x48.png", working:"Iris_02_working_48x48.png",
+      back:"Iris_03_back_48x48.png",
       walkLeft:["Iris_04_walk_left_1_48x48.png","Iris_05_walk_left_2_48x48.png"],
       walkRight:["Iris_06_walk_right_1_48x48.png","Iris_07_walk_right_2_48x48.png"]
     },
@@ -298,11 +306,12 @@ const ROSTER = [
   },
   {
     id:"colette", name:"コレット", room:"工房", accent:"#c9772e",
-    activity:{"source":"codex","skills":[]},
+    activity:{"source":"codex","skills":[],"tools":[]},
     role:"構築（Codex）",
     col:2, row:2,
     sprites:{
       idle:"Colette_01_idle_48x48.png", working:"Colette_02_working_48x48.png",
+      back:"Colette_03_back_48x48.png",
       walkLeft:["Colette_04_walk_left_1_48x48.png","Colette_05_walk_left_2_48x48.png"],
       walkRight:["Colette_06_walk_right_1_48x48.png","Colette_07_walk_right_2_48x48.png"]
     },
@@ -370,22 +379,32 @@ function makeAgent(def){
   function poseIdle(){ set(def.sprites.idle); }
   function poseWork(){ set(def.sprites.working); }
 
-  function walkTo(targetX){
+  /* 縦に動いてから横に動く。上りは後ろ姿、下りは正面を見せる */
+  function walkTo(targetX, targetY = pos.y){
     const generation = modeGeneration;
     return new Promise(resolve=>{
-      const frames = targetX > pos.x ? def.sprites.walkRight : def.sprites.walkLeft;
       let last = 0;
       function step(t){
         if (generation !== modeGeneration || liveMode){ resolve(); return; }
         if (!last) last = t;
         const dt = (t - last) / 1000; last = t;
-        const remaining = targetX - pos.x;
         const dist = WALK_SPEED * dt;
-        if (Math.abs(remaining) <= dist){
+        const dy = targetY - pos.y;
+        if (Math.abs(dy) > dist){
+          pos.y += Math.sign(dy) * dist;
+          place();
+          set(dy < 0 ? def.sprites.back : def.sprites.idle);
+          requestAnimationFrame(step);
+          return;
+        }
+        pos.y = targetY;
+        const dx = targetX - pos.x;
+        if (Math.abs(dx) <= dist){
           pos.x = targetX; place(); poseIdle(); resolve(); return;
         }
-        pos.x += Math.sign(remaining) * dist;
+        pos.x += Math.sign(dx) * dist;
         place();
+        const frames = dx > 0 ? def.sprites.walkRight : def.sprites.walkLeft;
         set(Math.floor(t / FRAME_MS) % 2 === 0 ? frames[0] : frames[1]);
         requestAnimationFrame(step);
       }
@@ -404,46 +423,45 @@ ROSTER.forEach(def => agents[def.id] = makeAgent(def));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const pick  = a => a[Math.floor(Math.random() * a.length)];
 
-/* 同じ列（row）にいる他のagentを返す */
-function rowMates(me){
-  return ROSTER.filter(d => d.row === me.def.row && d.id !== me.def.id)
-               .map(d => agents[d.id]);
+/* 自分以外の全員。部屋をまたいで訪ね合う（縦の移動が生まれる） */
+function mates(me){
+  return ROSTER.filter(d => d.id !== me.def.id).map(d => agents[d.id]);
 }
 
 async function agentLoop(me){
   const generation = modeGeneration;
   const cancelled = () => liveMode || generation !== modeGeneration;
-  await sleep(Math.random() * 6000); // 開始をばらけさせる
+  await sleep(Math.random() * 2000); // 開始をばらけさせる
   while (!cancelled()){
     // 机で作業
     me.poseWork();
-    await sleep(3000 + Math.random() * 4000);
+    await sleep(1600 + Math.random() * 2000);
     if (cancelled()) return;
     me.poseIdle();
-    await sleep(1200 + Math.random() * 2500);
+    await sleep(600 + Math.random() * 1000);
     if (cancelled()) return;
 
-    // 6割の確率で、同じ列の誰かを訪ねる
-    if (Math.random() < 0.6){
-      const mates = rowMates(me);
-      if (mates.length){
-        const target = pick(mates);
+    // 7割5分の確率で、誰かを訪ねる
+    if (Math.random() < 0.75){
+      const others = mates(me);
+      if (others.length){
+        const target = pick(others);
         const side = target.home.x > me.home.x ? -64 : 64;
-        await me.walkTo(target.home.x + side);
+        await me.walkTo(target.home.x + side, target.home.y);
         if (cancelled()) return;
         me.say(pick(me.def.lines));
         target.poseIdle();
-        await sleep(2400);
+        await sleep(2000);
         if (cancelled()) return;
-        if (Math.random() < 0.5){ target.say(pick(target.def.lines)); await sleep(2200); }
+        if (Math.random() < 0.5){ target.say(pick(target.def.lines)); await sleep(1900); }
         if (cancelled()) return;
-        await me.walkTo(me.home.x);
+        await me.walkTo(me.home.x, me.home.y);
         if (cancelled()) return;
         target.poseWork();
       }
     }
 
-    await sleep(3000 + Math.random() * 6000);
+    await sleep(1200 + Math.random() * 2500);
   }
 }
 

@@ -9,6 +9,8 @@ import time
 BASE = Path(__file__).resolve().parent
 JST = timezone(timedelta(hours=9))
 TAIL_BYTES = 8192
+MAX_READ = 1 << 20  # Per-poll ceiling; a burst larger than this drops its oldest part.
+ANCHOR = 32         # Bytes re-read to confirm the file was appended to, not replaced.
 STRING = re.compile(rb'"(?:[^"\\\x00-\x1f]|\\(?:["\\/bfnrt]|u[0-9a-fA-F]{4}))*"')
 NUMBER = re.compile(rb'-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?')
 
@@ -163,6 +165,7 @@ class Watcher:
         self.image_dirs = image_dirs
         self.seen = {key: (None, None) for key in roster}
         self.files = {}
+        self.offsets = {}
         self.images = set()
         self.image_baseline = set()
         self.health = {}
@@ -171,11 +174,15 @@ class Watcher:
         self.artifact_files = {}
         self.artifact_baseline = set()
 
-    def mark(self, source, stamp, detail, now, skill=None):
+    def mark(self, source, stamp, detail, now, skill=None, tool=None):
+        """Attribute one event: skill name first, then tool name, then source."""
         if stamp > now + 5:
             return
         matches = [key for key, config in self.roster.items()
                    if skill is not None and skill in config.get('skills', [])]
+        if not matches and tool is not None:
+            matches = [key for key, config in self.roster.items()
+                       if tool in config.get('tools', [])]
         if not matches:
             matches = [key for key, config in self.roster.items() if config.get('source') == source]
         for key in matches:
@@ -197,25 +204,42 @@ class Watcher:
                 try:
                     stat = path.stat()
                     signature = (stat.st_mtime_ns, stat.st_size, stat.st_ino)
-                    if self.files.get(path, (None, None))[0] == signature:
-                        failures += self.files[path][1]
+                    previous = self.files.get(path)
+                    if previous is not None and previous[0] == signature:
+                        failures += previous[1]
                         continue
                     file_failures = 0
                     with path.open('rb') as stream:
-                        start = max(0, stat.st_size - TAIL_BYTES)
-                        stream.seek(start)
-                        tail = stream.read(TAIL_BYTES)
-                    # Discard the first fragment and an unfinished final record.
-                    lines = tail.split(b'\n')
-                    if start:
+                        # Resume where the last poll stopped so nothing is skipped
+                        # between polls. The anchor proves the file was appended to
+                        # rather than replaced; without it, restart from the tail.
+                        offset, fresh = 0, True
+                        state = self.offsets.get(path)
+                        if state is not None and state[0] <= stat.st_size:
+                            offset, anchor = state
+                            stream.seek(offset - len(anchor))
+                            fresh = stream.read(len(anchor)) != anchor
+                        if fresh:
+                            offset = max(0, stat.st_size - TAIL_BYTES)
+                        elif stat.st_size - offset > MAX_READ:
+                            offset, fresh = stat.st_size - MAX_READ, True
+                        stream.seek(offset)
+                        chunk = stream.read(stat.st_size - offset)
+                    consumed = chunk.rfind(b'\n') + 1
+                    lines = chunk[:consumed].split(b'\n')
+                    if fresh and offset:
+                        # The first fragment is the tail of a record we never saw whole.
                         lines = lines[1:]
-                    for line in lines[:-1]:
+                    if consumed:
+                        self.offsets[path] = (offset + consumed,
+                                              chunk[max(0, consumed - ANCHOR):consumed])
+                    for line in lines:
                         if not line.strip():
                             continue
                         try:
                             for event_index, (stamp, name, skill) in enumerate(metadata(line)):
                                 self.mark('claude', stamp, skill if name == 'Skill' and skill else name,
-                                          now, skill if name == 'Skill' else None)
+                                          now, skill if name == 'Skill' else None, name)
                                 if name == 'Skill' and skill and stamp <= now + 5:
                                     self.tasks[(str(path), stamp, skill, event_index)] = {
                                         'skill': skill, 'timestamp': iso(stamp)}
