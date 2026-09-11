@@ -383,12 +383,14 @@ function makeAgent(def){
   /* 縦に動いてから横に動く。上りは後ろ姿、下りは正面を見せる */
   function walkTo(targetX, targetY = pos.y){
     const generation = modeGeneration;
+    const epoch = self.motionEpoch;
+    if (liveMode && self.state === "away") return Promise.resolve();
     self.walking = true;
     return new Promise(resolve=>{
-      const stop = () => { self.walking = false; resolve(); };
+      const stop = () => { if (epoch === self.motionEpoch) self.walking = false; resolve(); };
       let last = 0;
       function step(t){
-        if (generation !== modeGeneration){ stop(); return; }
+        if (generation !== modeGeneration || epoch !== self.motionEpoch){ stop(); return; }
         if (!last) last = t;
         const dt = (t - last) / 1000; last = t;
         const dist = WALK_SPEED * dt;
@@ -417,6 +419,7 @@ function makeAgent(def){
 
   /* 姿勢は必ず実測の状態に従わせる。デモ表示のときだけ自由に構えてよい */
   function syncPose(){
+    if (self.walking) return;
     if (!liveMode){ poseIdle(); return; }
     self.state === "working" ? poseWork() : poseIdle();
   }
@@ -425,7 +428,7 @@ function makeAgent(def){
   poseIdle();
   /* state は実測の状態（working/idle/away）。デモ表示のあいだは null */
   const self = { def, home, pos, place, say, poseIdle, poseWork, syncPose, walkTo,
-                 spr, desk, bub, stateLabel, state:null, walking:false };
+                 spr, desk, bub, stateLabel, state:null, walking:false, motionEpoch:0 };
   return self;
 }
 
@@ -449,6 +452,8 @@ async function agentLoop(me){
   const cancelled = () => generation !== modeGeneration;
   await sleep(Math.random() * 2000); // 開始をばらけさせる
   while (!cancelled()){
+    const epoch = me.motionEpoch;
+    const interrupted = () => epoch !== me.motionEpoch;
     const state = liveMode ? (me.state || "away") : "demo";
 
     // 退室中：席に戻して動かさない
@@ -465,9 +470,11 @@ async function agentLoop(me){
     state === "idle" ? me.poseIdle() : me.poseWork();
     await sleep(1600 + Math.random() * 2000);
     if (cancelled()) return;
+    if (interrupted()) continue;
     me.syncPose();
     await sleep(600 + Math.random() * 1000);
     if (cancelled()) return;
+    if (interrupted()) continue;
 
     if (Math.random() < VISIT_CHANCE[state]){
       // 退室中の相手は訪ねない（そこに居ないため）
@@ -477,12 +484,15 @@ async function agentLoop(me){
         const side = target.home.x > me.home.x ? -64 : 64;
         await me.walkTo(target.home.x + side, target.home.y);
         if (cancelled()) return;
+        if (interrupted()) continue;
         me.say(pick(me.def.lines));
         target.syncPose();
         await sleep(2000);
         if (cancelled()) return;
+        if (interrupted()) continue;
         if (Math.random() < 0.5){ target.say(pick(target.def.lines)); await sleep(1900); }
         if (cancelled()) return;
+        if (interrupted()) continue;
         await me.walkTo(me.home.x, me.home.y);
         if (cancelled()) return;
         target.syncPose();
@@ -613,6 +623,7 @@ function changeMode(live){
   liveMode = live;
   modeGeneration++;   // 走っている歩行ループを打ち切り、全員を席に戻す
   for (const me of Object.values(agents)){
+    me.motionEpoch++;
     me.pos.x = me.home.x; me.pos.y = me.home.y; me.place();
     me.bub.classList.remove("show");
     me.walking = false;
@@ -632,6 +643,12 @@ function applyStatus(data){
   changeMode(true);
   for (const def of ROSTER){
     const me = agents[def.id], record = data.agents[def.id];
+    if (record.state === "away" && me.state !== "away"){
+      me.motionEpoch++;
+      me.walking = false;
+      me.pos.x = me.home.x; me.pos.y = me.home.y; me.place();
+      me.bub.classList.remove("show");
+    }
     me.state = record.state;
     me.spr.dataset.state = me.desk.dataset.state = record.state;
     me.stateLabel.textContent = STATE_LABELS[record.state];

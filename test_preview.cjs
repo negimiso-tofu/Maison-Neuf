@@ -93,6 +93,52 @@ async function main(){
   await run('pollStatus()');
   assert.match(elements.connection.textContent, /見回り役の更新が停止/);
   assert.match(elements.connection.textContent, /最終更新/);
+  await testLiveMotion(code, element);
   console.log('PASS: state rendering, validation, missing/broken/stale status, recovery, demo cancellation');
+}
+
+async function testLiveMotion(code, element){
+  let now = 0, serial = 0;
+  const pending = new Map(), frames = [], nodes = {};
+  const sandbox = {Date, console, AbortController,
+    document:{getElementById:id=>(nodes[id] ||= element()), createElement:element},
+    setTimeout(fn, ms){ const id = ++serial; pending.set(id, {fn, at:now + ms}); return id; },
+    clearTimeout:id=>pending.delete(id), requestAnimationFrame:fn=>frames.push(fn),
+    fetch:()=>new Promise(()=>{})};
+  vm.createContext(sandbox);
+  const run = source => vm.runInContext(source, sandbox);
+  run('Math.random = () => 0'); // Always attempt a visit when the state permits it.
+  run(code);
+  run(`const snapshot = {updatedAt:new Date().toISOString(), agents:Object.fromEntries(
+    ROSTER.map(def=>[def.id,{state:'away',lastSeen:null,detail:null}]))}; applyStatus(snapshot);`);
+  async function advance(ms, check=()=>{}){
+    const end = now + ms;
+    while(now < end){
+      now += 100;
+      for(const [id, timer] of [...pending]){
+        if(timer.at <= now){ pending.delete(id); timer.fn(); }
+      }
+      frames.splice(0).forEach(fn=>fn(now));
+      for(let i=0;i<8;i++) await Promise.resolve();
+      check();
+    }
+  }
+  const allHome = () => assert.equal(run('Object.values(agents).every(a=>a.pos.x===a.home.x && a.pos.y===a.home.y)'), true);
+  await advance(30000, allHome);
+  // Two working agents may visit; the other seven must never leave their seats.
+  run(`snapshot.agents.clarice.state='working'; snapshot.agents.colette.state='working'; applyStatus(snapshot);`);
+  let walked = false;
+  await advance(30000, ()=>{
+    assert.equal(run('Object.values(agents).filter(a=>a.state==="away").every(a=>a.pos.x===a.home.x && a.pos.y===a.home.y)'),true);
+    if(run('agents.clarice.walking')) walked = true;
+    run('applyStatus(snapshot)');
+    assert.equal(run('Object.values(agents).filter(a=>!a.walking && a.state==="working").every(a=>a.spr.children[1].src===a.def.sprites.working)'),true);
+  });
+  assert.equal(walked, true, 'Live working agent should actually walk');
+  // Status may switch to away at any point, including midway through a visit.
+  run(`for(const record of Object.values(snapshot.agents)) record.state='away'; applyStatus(snapshot);`);
+  allHome();
+  await advance(15000, allHome);
+  console.log('PASS: live away agents remain home; walking agents preserve measured poses');
 }
 module.exports = main();

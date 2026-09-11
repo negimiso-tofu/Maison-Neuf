@@ -157,6 +157,63 @@ class WatcherTests(unittest.TestCase):
         self.assertNotIn('PRIVATE_', json.dumps(result))
         self.assertEqual(self.w.poll(self.now + 8)['artifacts'], result['artifacts'])
 
+    def test_tool_assignments(self):
+        assignments = {'Write': 'celine', 'Grep': 'sylvia', 'WebSearch': 'verity',
+                       'AskUserQuestion': 'rosalie', 'TodoWrite': 'iris',
+                       'Agent': 'aurelia', 'Artifact': 'lumiere'}
+        for index, (tool, expected) in enumerate(assignments.items()):
+            with self.subTest(tool=tool):
+                fresh = watcher.Watcher(self.roster, self.claude, self.codex, [self.images])
+                fresh.mark('claude', self.now, tool, self.now, tool=tool)
+                self.assertEqual([key for key, value in fresh.seen.items() if value[0] is not None], [expected])
+                (self.claude / f'tool-{index}.jsonl').write_bytes(event(self.now, tool))
+        result = self.w.poll(self.now)
+        for expected in assignments.values():
+            self.assertEqual(result['agents'][expected]['state'], 'working')
+        self.assertEqual(result['agents']['clarice']['state'], 'away')
+
+    def test_skill_then_tool_then_source_priority(self):
+        self.w.mark('claude', self.now, 'company-check', self.now,
+                    skill='company-check', tool='Write')
+        self.assertEqual(self.w.seen['verity'][0], self.now)
+        self.assertIsNone(self.w.seen['celine'][0])
+        self.w.mark('claude', self.now + 1, 'Write', self.now + 1,
+                    skill='unknown-skill', tool='Write')
+        self.assertEqual(self.w.seen['celine'][0], self.now + 1)
+        self.w.mark('claude', self.now + 2, 'unknown-tool', self.now + 2,
+                    skill='unknown-skill', tool='unknown-tool')
+        self.assertEqual(self.w.seen['clarice'][0], self.now + 2)
+
+    def test_resume_keeps_events_before_large_append_tail(self):
+        path = self.claude / 'burst.jsonl'
+        path.write_bytes(event(self.now - 100))
+        self.w.poll(self.now)
+        # The unique Skill event is outside the final 8KiB, but after the saved cursor.
+        burst = event(self.now, 'Skill', 'company-check') + event(self.now, 'Read') * 60
+        self.assertGreater(len(burst), watcher.TAIL_BYTES)
+        self.assertLess(len(burst), watcher.MAX_READ)
+        with path.open('ab') as stream:
+            stream.write(burst)
+        result = self.w.poll(self.now)
+        self.assertEqual(result['agents']['verity']['state'], 'working')
+        self.assertEqual(len(result['tasks']), 1)
+        self.assertEqual(self.w.poll(self.now + 4)['tasks'], result['tasks'])
+
+    def test_same_length_replacement_checks_anchor_and_restarts(self):
+        path = self.claude / 'replaced.jsonl'
+        before = event(self.now - 100, 'Read', padding='AAAA')
+        after = event(self.now, 'Edit', padding='BBBB')
+        self.assertEqual(len(before), len(after))
+        path.write_bytes(before)
+        self.w.poll(self.now)
+        saved = path.stat()
+        path.write_bytes(after)
+        os.utime(path, ns=(saved.st_atime_ns, saved.st_mtime_ns + 1000000))
+        result = self.w.poll(self.now)
+        self.assertEqual(result['agents']['celine']['state'], 'working')
+        self.assertEqual(result['agents']['celine']['detail'], 'Edit')
+        self.assertEqual(self.w.offsets[path][0], len(after))
+
     def test_status_file_and_missing_sources(self):
         self.w.claude_dir = self.root / 'missing'
         payload = self.w.poll(self.now)
