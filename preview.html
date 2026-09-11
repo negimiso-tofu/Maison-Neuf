@@ -196,7 +196,8 @@
 
 <p class="legend">
   実測表示：60秒以内は稼働中、5分未満は待機中、5分以上は退室中（半透明）。<br>
-  見回り役が停止・未接続のときは、訪問し合うデモ表示に切り替わります。
+  稼働中はよく席を立ち、待機中はたまに、退室中は動きません。出歩く量が実際の稼働の濃さです。<br>
+  見回り役が停止・未接続のときは、全員が訪問し合うデモ表示に切り替わります。
 </p>
 
 <script>
@@ -382,10 +383,12 @@ function makeAgent(def){
   /* 縦に動いてから横に動く。上りは後ろ姿、下りは正面を見せる */
   function walkTo(targetX, targetY = pos.y){
     const generation = modeGeneration;
+    self.walking = true;
     return new Promise(resolve=>{
+      const stop = () => { self.walking = false; resolve(); };
       let last = 0;
       function step(t){
-        if (generation !== modeGeneration || liveMode){ resolve(); return; }
+        if (generation !== modeGeneration){ stop(); return; }
         if (!last) last = t;
         const dt = (t - last) / 1000; last = t;
         const dist = WALK_SPEED * dt;
@@ -400,7 +403,7 @@ function makeAgent(def){
         pos.y = targetY;
         const dx = targetX - pos.x;
         if (Math.abs(dx) <= dist){
-          pos.x = targetX; place(); poseIdle(); resolve(); return;
+          pos.x = targetX; place(); stop(); syncPose(); return;
         }
         pos.x += Math.sign(dx) * dist;
         place();
@@ -412,9 +415,18 @@ function makeAgent(def){
     });
   }
 
+  /* 姿勢は必ず実測の状態に従わせる。デモ表示のときだけ自由に構えてよい */
+  function syncPose(){
+    if (!liveMode){ poseIdle(); return; }
+    self.state === "working" ? poseWork() : poseIdle();
+  }
+
   place();
   poseIdle();
-  return { def, home, pos, place, say, poseIdle, poseWork, walkTo, spr, desk, bub, stateLabel };
+  /* state は実測の状態（working/idle/away）。デモ表示のあいだは null */
+  const self = { def, home, pos, place, say, poseIdle, poseWork, syncPose, walkTo,
+                 spr, desk, bub, stateLabel, state:null, walking:false };
+  return self;
 }
 
 const agents = {};
@@ -428,36 +440,52 @@ function mates(me){
   return ROSTER.filter(d => d.id !== me.def.id).map(d => agents[d.id]);
 }
 
+/* 訪ね歩く頻度。実測表示では「動きの量」が実際の稼働の濃さに対応する。
+   稼働中はよく出歩き、待機中はたまに、退室中は席を外していて動かない。 */
+const VISIT_CHANCE = { demo:0.75, working:0.55, idle:0.25, away:0 };
+
 async function agentLoop(me){
   const generation = modeGeneration;
-  const cancelled = () => liveMode || generation !== modeGeneration;
+  const cancelled = () => generation !== modeGeneration;
   await sleep(Math.random() * 2000); // 開始をばらけさせる
   while (!cancelled()){
+    const state = liveMode ? (me.state || "away") : "demo";
+
+    // 退室中：席に戻して動かさない
+    if (state === "away"){
+      if (me.pos.x !== me.home.x || me.pos.y !== me.home.y){
+        await me.walkTo(me.home.x, me.home.y);
+        if (cancelled()) return;
+      }
+      await sleep(2000);
+      continue;
+    }
+
     // 机で作業
-    me.poseWork();
+    state === "idle" ? me.poseIdle() : me.poseWork();
     await sleep(1600 + Math.random() * 2000);
     if (cancelled()) return;
-    me.poseIdle();
+    me.syncPose();
     await sleep(600 + Math.random() * 1000);
     if (cancelled()) return;
 
-    // 7割5分の確率で、誰かを訪ねる
-    if (Math.random() < 0.75){
-      const others = mates(me);
+    if (Math.random() < VISIT_CHANCE[state]){
+      // 退室中の相手は訪ねない（そこに居ないため）
+      const others = mates(me).filter(other => !liveMode || other.state !== "away");
       if (others.length){
         const target = pick(others);
         const side = target.home.x > me.home.x ? -64 : 64;
         await me.walkTo(target.home.x + side, target.home.y);
         if (cancelled()) return;
         me.say(pick(me.def.lines));
-        target.poseIdle();
+        target.syncPose();
         await sleep(2000);
         if (cancelled()) return;
         if (Math.random() < 0.5){ target.say(pick(target.def.lines)); await sleep(1900); }
         if (cancelled()) return;
         await me.walkTo(me.home.x, me.home.y);
         if (cancelled()) return;
-        target.poseWork();
+        target.syncPose();
       }
     }
 
@@ -583,16 +611,20 @@ function validateStatus(data, now = Date.now()){
 function changeMode(live){
   if (live === liveMode) return;
   liveMode = live;
-  modeGeneration++;
+  modeGeneration++;   // 走っている歩行ループを打ち切り、全員を席に戻す
   for (const me of Object.values(agents)){
     me.pos.x = me.home.x; me.pos.y = me.home.y; me.place();
     me.bub.classList.remove("show");
-    delete me.spr.dataset.state; delete me.desk.dataset.state;
-    me.stateLabel.textContent = "デモ";
-    me.spr.setAttribute("aria-label", `${me.def.name}：デモ`);
+    me.walking = false;
+    if (!live){
+      me.state = null;
+      delete me.spr.dataset.state; delete me.desk.dataset.state;
+      me.stateLabel.textContent = "デモ";
+      me.spr.setAttribute("aria-label", `${me.def.name}：デモ`);
+    }
     me.poseIdle();
   }
-  if (!live) Object.values(agents).forEach(agentLoop);
+  Object.values(agents).forEach(agentLoop);
 }
 
 function applyStatus(data){
@@ -600,10 +632,11 @@ function applyStatus(data){
   changeMode(true);
   for (const def of ROSTER){
     const me = agents[def.id], record = data.agents[def.id];
+    me.state = record.state;
     me.spr.dataset.state = me.desk.dataset.state = record.state;
     me.stateLabel.textContent = STATE_LABELS[record.state];
     me.spr.setAttribute("aria-label", `${def.name}：${STATE_LABELS[record.state]}`);
-    record.state === "working" ? me.poseWork() : me.poseIdle();
+    if (!me.walking) me.syncPose();   // 歩いている最中の絵は上書きしない
   }
   const warning = data.sources && Object.values(data.sources).some(value => value !== "ok");
   document.getElementById("connection").textContent =
