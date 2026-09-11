@@ -2,3 +2,6 @@
 .DS_Store
 Thumbs.db
 desktop.ini
+status.json
+status.json.tmp
+__pycache__/

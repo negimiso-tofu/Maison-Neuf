@@ -39,17 +39,46 @@
     margin:0 0 20px;
     letter-spacing:.04em;
   }
+  .stage-viewport{ max-width:100%; overflow:auto; border-radius:6px; }
+  .office-layout{ width:900px; max-width:100%; }
+  .center-toggle{ position:fixed; top:14px; right:16px; z-index:21; border:1px solid #bfa983; border-radius:8px; background:#f4eddf; color:#3a332b; padding:10px 14px; cursor:pointer; font:inherit; font-size:12px; box-shadow:0 4px 16px #0003; }
+  .command-center{ position:fixed; top:62px; right:16px; bottom:16px; width:340px; max-width:calc(100vw - 32px); z-index:20; background:#f4eddf; border:1px solid #bfa983; border-radius:10px; padding:18px; box-shadow:0 12px 30px #0006; overflow-y:auto; transform:translateX(calc(100% + 20px)); visibility:hidden; transition:transform .22s ease, visibility .22s; }
+  .command-center.is-open{ transform:translateX(0); visibility:visible; }
+  @media(prefers-reduced-motion:reduce){ .command-center{ transition:none; } }
+  .command-center h2{ margin:0 0 6px; font-size:17px; }
+  .command-center h3{ margin:0; font-size:13px; }
+  .panel-note{ font-size:11px; color:#6d604c; line-height:1.6; margin:6px 0 12px; }
+  .panel-section{ border-top:1px solid #d6c7ad; margin-top:14px; padding-top:12px; }
+  .workers{ width:100%; border-collapse:collapse; font-size:12px; margin-top:8px; }
+  .workers th{ text-align:left; color:#766750; font-size:10px; padding-bottom:5px; }
+  .workers td{ padding:4px 0; border-top:1px solid #e2d6c2; }
+  .worker-button{ border:0; background:transparent; color:#3a332b; cursor:pointer; padding:3px 0; font:inherit; }
+  .worker-button:hover{ text-decoration:underline; }
+  .worker-state{ font-size:10px; border-radius:12px; padding:3px 7px; background:#e4ded3; white-space:nowrap; }
+  .worker-state[data-state="working"]{ background:#d6e8cf; color:#285127; }
+  .worker-state[data-state="idle"]{ background:#f6e6bb; color:#70541d; }
+  .history{ list-style:none; margin:8px 0 0; padding:0; max-height:150px; overflow:auto; }
+  .history li{ padding:7px 0; border-top:1px solid #e2d6c2; font-size:11px; overflow-wrap:anywhere; }
+  .history time{ display:block; font-size:10px; color:#766750; margin-top:3px; }
+  .agent-card{ position:relative; border:1px solid #b99b68; background:#fffaf0; border-radius:8px; padding:14px; margin-top:14px; }
+  .agent-card h3{ padding-right:26px; font-size:15px; }
+  .agent-card p{ font-size:12px; line-height:1.7; margin:6px 0 0; overflow-wrap:anywhere; }
+  .card-close{ position:absolute; top:8px; right:8px; border:0; background:transparent; cursor:pointer; font-size:20px; }
+  button:focus-visible{ outline:2px solid #925e2e; outline-offset:3px; }
+  @media(max-width:650px){ body{ padding-top:68px; } }
   .stage{
     position:relative;
     width:900px;
-    max-width:100%;
     height:680px;
     background:repeating-linear-gradient(90deg, var(--floor-a) 0 40px, var(--floor-b) 40px 80px);
-    border:10px solid var(--wall);
+    border:0;
     border-radius:6px;
     box-shadow:0 20px 50px rgba(0,0,0,.45);
     overflow:hidden;
   }
+  .stage.has-background{ background-image:url('background.png'); background-size:900px 680px; background-repeat:no-repeat; }
+  .stage.has-background .desk-top{ visibility:hidden; }
+  .stage.has-background .desk-label{ background:rgba(255,248,229,.93); border:1px solid #cbb78b; border-radius:5px; padding:2px 0; }
   .desk{
     position:absolute;
     width:130px;
@@ -65,9 +94,13 @@
     border-radius:4px;
     box-shadow:0 3px 0 rgba(0,0,0,.25), inset 0 2px 4px rgba(255,255,255,.2);
   }
-  .desk-label{ margin-top:6px; font-size:11px; line-height:1.5 }
+  .desk-label{ position:absolute; top:48px; width:100%; font-size:11px; line-height:1.5 }
   .desk-room{ font-weight:700; color:var(--ink) }
   .desk-name{ font-size:10.5px; color:var(--ink-soft) }
+  .desk[data-state="working"] .desk-label{ background:#fff8df; box-shadow:0 0 12px #ffd36d; border-radius:5px }
+  .sprite[data-state="away"]{ opacity:.35 }
+  .desk-state{ font-size:10px; font-weight:700 }
+  .desk-state::before{ content:" · " }
   .accent-dot{
     display:inline-block;
     width:6px; height:6px;
@@ -77,11 +110,12 @@
   }
 
   .sprite{
+    border:0; padding:0; background:transparent; cursor:pointer;
     position:absolute;
-    width:144px;
-    height:144px;
+    width:96px;
+    height:96px;
     transform:translate(-50%, -100%);
-    pointer-events:none;
+    pointer-events:auto;
     will-change:left, top;
   }
   .sprite img{
@@ -131,13 +165,38 @@
 <body>
 
 <h1>Munder Difflin — 制作中プレビュー</h1>
-<p class="sub">9部屋・9名が稼働中。背景とUIパネルはCodex復活後に本実装します。</p>
+<p class="sub" id="connection" role="status">デモ表示 — 稼働データを確認中</p>
 
-<div class="stage" id="stage"></div>
+<main class="office-layout">
+  <div class="stage-viewport"><div class="stage" id="stage"></div></div>
+  <button id="center-toggle" class="center-toggle" type="button" aria-controls="command-center" aria-expanded="false">☰ コマンドセンター</button>
+  <aside id="command-center" class="command-center" aria-label="コマンドセンター" tabindex="-1">
+    <h2>コマンドセンター</h2>
+    <p id="office-summary" class="panel-note">稼働データを確認中</p>
+    <section aria-labelledby="workers-heading">
+      <h3 id="workers-heading">ワーカー</h3>
+      <table class="workers"><thead><tr><th scope="col">名前</th><th scope="col">状態</th></tr></thead><tbody id="workers-body"></tbody></table>
+    </section>
+    <section id="agent-card" class="agent-card" hidden aria-label="キャラクター詳細">
+      <button id="card-close" class="card-close" type="button" aria-label="詳細を閉じる">×</button>
+      <h3 id="card-name"></h3><p id="card-room"></p><p id="card-skills"></p><p id="card-state"></p><p id="card-last-seen"></p>
+    </section>
+    <section class="panel-section" aria-labelledby="tasks-heading">
+      <h3 id="tasks-heading">タスク</h3>
+      <p class="panel-note">直近に呼ばれたスキル · 最大30件</p>
+      <ul id="task-history" class="history"></ul>
+    </section>
+    <section class="panel-section" aria-labelledby="artifacts-heading">
+      <h3 id="artifacts-heading">アクティビティ</h3>
+      <p class="panel-note">監視フォルダの新規・更新ファイル · 最大30件</p>
+      <ul id="artifact-history" class="history"></ul>
+    </section>
+  </aside>
+</main>
 
 <p class="legend">
-  各自が自分の机で作業しつつ、時々同じ列の誰かを訪ねて一言交わします。<br>
-  動きは仮のループです。実際のファイル更新と連動させるのは今後の実装。
+  実測表示：60秒以内は稼働中、5分未満は待機中、5分以上は退室中（半透明）。<br>
+  見回り役が停止・未接続のときは、訪問し合うデモ表示に切り替わります。
 </p>
 
 <script>
@@ -149,6 +208,8 @@
 const ROSTER = [
   {
     id:"clarice", name:"クラリス", room:"受付の間", accent:"#6a4fa0",
+    activity:{"source":"claude","skills":[]},
+    role:"統括・窓口（Claude Code）",
     col:0, row:1,
     sprites:{
       idle:"Clarice_00_idle_48x48.png", working:"Clarice_01_working_48x48.png",
@@ -159,6 +220,7 @@ const ROSTER = [
   },
   {
     id:"verity", name:"ヴェリティ", room:"調査室", accent:"#b8433a",
+    activity:{"source":"skill","skills":["company-check","案件応募"]},
     col:0, row:0,
     sprites:{
       idle:"Verity_01_idle_48x48.png", working:"Verity_02_working_48x48.png",
@@ -169,6 +231,7 @@ const ROSTER = [
   },
   {
     id:"aurelia", name:"オーレリア", room:"準備の間", accent:"#b07c1e",
+    activity:{"source":"skill","skills":["kigyobetsu-mensetsu"]},
     col:1, row:0,
     sprites:{
       idle:"Aurelia_01_idle_48x48.png", working:"Aurelia_02_working_48x48.png",
@@ -179,6 +242,7 @@ const ROSTER = [
   },
   {
     id:"sylvia", name:"シルヴィア", room:"記録の間", accent:"#2f6b4f",
+    activity:{"source":"skill","skills":["mensetsu-kiroku"]},
     col:2, row:0,
     sprites:{
       idle:"Sylvia_01_idle_48x48.png", working:"Sylvia_02_working_48x48.png",
@@ -189,6 +253,7 @@ const ROSTER = [
   },
   {
     id:"celine", name:"セリーヌ", room:"文机の間", accent:"#3b4b8a",
+    activity:{"source":"skill","skills":["議事録","報告書","提案書","メール"]},
     col:1, row:1,
     sprites:{
       idle:"Celine_01_idle_48x48.png", working:"Celine_02_working_48x48.png",
@@ -199,6 +264,8 @@ const ROSTER = [
   },
   {
     id:"lumiere", name:"リュミエール", room:"画室", accent:"#3f9bb0",
+    activity:{"source":"images","skills":[]},
+    role:"画像生成（GPT）",
     col:2, row:1,
     sprites:{
       idle:"Lumiere_01_idle_48x48.png", working:"Lumiere_02_working_48x48.png",
@@ -209,6 +276,7 @@ const ROSTER = [
   },
   {
     id:"rosalie", name:"ロザリー", room:"聞き取りの間", accent:"#c46a86",
+    activity:{"source":"skill","skills":["商談ヒアリング"]},
     col:0, row:2,
     sprites:{
       idle:"Rosalie_01_idle_48x48.png", working:"Rosalie_02_working_48x48.png",
@@ -219,6 +287,7 @@ const ROSTER = [
   },
   {
     id:"iris", name:"イリス", room:"手帳の間", accent:"#9b8fc2",
+    activity:{"source":"skill","skills":["タスク整理","朝の準備"]},
     col:1, row:2,
     sprites:{
       idle:"Iris_01_idle_48x48.png", working:"Iris_02_working_48x48.png",
@@ -229,6 +298,8 @@ const ROSTER = [
   },
   {
     id:"colette", name:"コレット", room:"工房", accent:"#c9772e",
+    activity:{"source":"codex","skills":[]},
+    role:"構築（Codex）",
     col:2, row:2,
     sprites:{
       idle:"Colette_01_idle_48x48.png", working:"Colette_02_working_48x48.png",
@@ -240,12 +311,18 @@ const ROSTER = [
 ];
 
 /* レイアウト：3列 × 3行のグリッド */
-const COL_X = [150, 450, 750];
-const ROW_Y = [190, 410, 620];
+const COL_X = [185, 450, 715];
+const ROW_Y = [245, 395, 545];
 const WALK_SPEED = 95;   // px/秒
 const FRAME_MS   = 210;  // 歩行フレームの入れ替え
 
 const stage = document.getElementById("stage");
+const backgroundImage = document.createElement("img");
+backgroundImage.onload = () => stage.classList.add("has-background");
+backgroundImage.onerror = () => stage.classList.remove("has-background");
+backgroundImage.src = "background.png";
+let liveMode = false;
+let modeGeneration = 0;
 
 function makeAgent(def){
   const home = { x: COL_X[def.col], y: ROW_Y[def.row] };
@@ -262,9 +339,16 @@ function makeAgent(def){
       '<div class="desk-name">' + def.name + '</div>' +
     '</div>';
   stage.appendChild(desk);
+  const stateLabel = document.createElement("span");
+  stateLabel.className = "desk-state";
+  stateLabel.textContent = "デモ";
+  desk.querySelector(".desk-name").appendChild(stateLabel);
 
   // キャラクター
-  const spr = document.createElement("div");
+  const spr = document.createElement("button");
+  spr.type = "button";
+  spr.onclick = () => showAgent(def.id);
+  spr.setAttribute("aria-label", `${def.name}の詳細`);
   spr.className = "sprite";
   const bub = document.createElement("div");
   bub.className = "bubble";
@@ -287,10 +371,12 @@ function makeAgent(def){
   function poseWork(){ set(def.sprites.working); }
 
   function walkTo(targetX){
+    const generation = modeGeneration;
     return new Promise(resolve=>{
       const frames = targetX > pos.x ? def.sprites.walkRight : def.sprites.walkLeft;
       let last = 0;
       function step(t){
+        if (generation !== modeGeneration || liveMode){ resolve(); return; }
         if (!last) last = t;
         const dt = (t - last) / 1000; last = t;
         const remaining = targetX - pos.x;
@@ -309,7 +395,7 @@ function makeAgent(def){
 
   place();
   poseIdle();
-  return { def, home, pos, place, say, poseIdle, poseWork, walkTo };
+  return { def, home, pos, place, say, poseIdle, poseWork, walkTo, spr, desk, bub, stateLabel };
 }
 
 const agents = {};
@@ -325,13 +411,17 @@ function rowMates(me){
 }
 
 async function agentLoop(me){
+  const generation = modeGeneration;
+  const cancelled = () => liveMode || generation !== modeGeneration;
   await sleep(Math.random() * 6000); // 開始をばらけさせる
-  while (true){
+  while (!cancelled()){
     // 机で作業
     me.poseWork();
     await sleep(3000 + Math.random() * 4000);
+    if (cancelled()) return;
     me.poseIdle();
     await sleep(1200 + Math.random() * 2500);
+    if (cancelled()) return;
 
     // 6割の確率で、同じ列の誰かを訪ねる
     if (Math.random() < 0.6){
@@ -340,11 +430,15 @@ async function agentLoop(me){
         const target = pick(mates);
         const side = target.home.x > me.home.x ? -64 : 64;
         await me.walkTo(target.home.x + side);
+        if (cancelled()) return;
         me.say(pick(me.def.lines));
         target.poseIdle();
         await sleep(2400);
+        if (cancelled()) return;
         if (Math.random() < 0.5){ target.say(pick(target.def.lines)); await sleep(2200); }
+        if (cancelled()) return;
         await me.walkTo(me.home.x);
+        if (cancelled()) return;
         target.poseWork();
       }
     }
@@ -354,6 +448,180 @@ async function agentLoop(me){
 }
 
 Object.values(agents).forEach(agentLoop);
+
+const STATE_LABELS = {working:"稼働中", idle:"待機中", away:"退室中"};
+let centerOpen = false;
+function setCenterOpen(open){
+  centerOpen = open;
+  const panel = document.getElementById("command-center");
+  const toggle = document.getElementById("center-toggle");
+  if (open) panel.classList.add("is-open"); else panel.classList.remove("is-open");
+  toggle.setAttribute("aria-expanded", String(open));
+  toggle.textContent = open ? "× コマンドセンターを閉じる" : "☰ コマンドセンター";
+  if (!open) toggle.focus();
+}
+document.getElementById("center-toggle").onclick = () => setCenterOpen(!centerOpen);
+document.onkeydown = event => {
+  if (event.key === "Escape" && centerOpen){ setCenterOpen(false); event.preventDefault(); }
+};
+let lastSnapshot = null;
+let selectedAgent = null;
+const workerRows = {};
+const formatTime = value => new Date(value).toLocaleString("ja-JP", {timeZone:"Asia/Tokyo"});
+for (const def of ROSTER){
+  const row = document.createElement("tr"), nameCell = document.createElement("td"), stateCell = document.createElement("td");
+  const button = document.createElement("button"), badge = document.createElement("span");
+  button.className = "worker-button"; button.type = "button"; button.textContent = def.name;
+  button.onclick = () => showAgent(def.id);
+  badge.className = "worker-state"; badge.textContent = "未接続";
+  nameCell.appendChild(button); stateCell.appendChild(badge); row.appendChild(nameCell); row.appendChild(stateCell);
+  document.getElementById("workers-body").appendChild(row);
+  workerRows[def.id] = badge;
+}
+document.getElementById("card-close").onclick = () => {
+  document.getElementById("agent-card").hidden = true;
+  if (selectedAgent) agents[selectedAgent].spr.focus();
+  selectedAgent = null;
+};
+function showAgent(id){
+  setCenterOpen(true);
+  selectedAgent = id;
+  document.getElementById("agent-card").hidden = false;
+  renderCard();
+}
+function renderCard(){
+  if (!selectedAgent) return;
+  const def = agents[selectedAgent].def;
+  const record = lastSnapshot?.agents[def.id];
+  document.getElementById("card-name").textContent = def.name;
+  document.getElementById("card-room").textContent = "部屋：" + def.room;
+  document.getElementById("card-skills").textContent = "担当：" + (def.role || def.activity.skills.join(" / "));
+  document.getElementById("card-state").textContent = "現在：" + (liveMode && record ? STATE_LABELS[record.state] : "実測未接続（デモ表示）");
+  document.getElementById("card-last-seen").textContent = record?.lastSeen
+    ? "最後の活動：" + formatTime(record.lastSeen) : "活動はまだ検出されていません";
+}
+function renderHistory(id, entries, field, empty){
+  const list = document.getElementById(id);
+  list.replaceChildren();
+  if (!Array.isArray(entries)){
+    const item = document.createElement("li");
+    item.textContent = "履歴を受信していません。更新したwatcher.pyを再起動してください。";
+    list.appendChild(item); return;
+  }
+  const valid = entries.filter(entry => entry && typeof entry[field] === "string" &&
+    entry[field].length <= 512 && Number.isFinite(Date.parse(entry.timestamp))).slice(0,30);
+  for (const entry of valid){
+    const item = document.createElement("li"), title = document.createElement("span"), time = document.createElement("time");
+    title.textContent = entry[field] + (field === "filename" ? (entry.kind === "created" ? " · 新規" : " · 更新") : "");
+    time.textContent = formatTime(entry.timestamp); time.dateTime = entry.timestamp;
+    item.appendChild(title); item.appendChild(time); list.appendChild(item);
+  }
+  if (!valid.length){ const item = document.createElement("li"); item.textContent = empty; list.appendChild(item); }
+}
+function renderCenter(){
+  const counts = {working:0,idle:0,away:0};
+  for (const def of ROSTER){
+    const state = liveMode ? lastSnapshot?.agents[def.id]?.state : null;
+    workerRows[def.id].textContent = state ? STATE_LABELS[state] : "未接続";
+    workerRows[def.id].dataset.state = state || "offline";
+    if (state) counts[state]++;
+  }
+  document.getElementById("office-summary").textContent = liveMode
+    ? `稼働 ${counts.working}名 · 待機 ${counts.idle}名 · 退室 ${counts.away}名`
+    : "実測未接続 · オフィスはデモ表示です。履歴は前回受信分です。";
+  renderHistory("task-history", lastSnapshot?.tasks, "skill", "スキル呼び出しはまだ検出されていません。");
+  renderHistory("artifact-history", lastSnapshot?.artifacts, "filename", "見回り役の起動後、新規・更新ファイルをここに表示します。");
+  renderCard();
+}
+renderCenter();
+const STALE_MS = 20000;
+function statusError(message){
+  const error = new Error(message);
+  error.statusMessage = message;
+  return error;
+}
+function validateStatus(data, now = Date.now()){
+  const updated = Date.parse(data?.updatedAt);
+  if (!Number.isFinite(updated) || !data.agents || typeof data.agents !== "object")
+    throw statusError("稼働データの形式が不正です。watcher.pyの表示を確認してください");
+  if (updated > now + 5000)
+    throw statusError("稼働データが未来の時刻です。PCの時刻を確認してください");
+  if (now - updated > STALE_MS){
+    const time = new Date(updated).toLocaleTimeString("ja-JP", {timeZone:"Asia/Tokyo"});
+    throw statusError(`見回り役の更新が停止しています（最終更新 ${time}・${Math.floor((now-updated)/1000)}秒前）。watcher.pyのターミナルを確認してください`);
+  }
+  for (const def of ROSTER){
+    const record = data.agents[def.id];
+    if (!record || !Object.hasOwn(STATE_LABELS, record.state) ||
+        !(record.detail === null || typeof record.detail === "string") ||
+        !(record.lastSeen === null || (typeof record.lastSeen === "string" &&
+          Number.isFinite(Date.parse(record.lastSeen)) && Date.parse(record.lastSeen) <= updated + 5000)) ||
+        (record.lastSeen === null && record.state !== "away"))
+      throw statusError("キャラクターの稼働データが不正です。watcher.pyを確認してください");
+  }
+  return data;
+}
+
+function changeMode(live){
+  if (live === liveMode) return;
+  liveMode = live;
+  modeGeneration++;
+  for (const me of Object.values(agents)){
+    me.pos.x = me.home.x; me.pos.y = me.home.y; me.place();
+    me.bub.classList.remove("show");
+    delete me.spr.dataset.state; delete me.desk.dataset.state;
+    me.stateLabel.textContent = "デモ";
+    me.spr.setAttribute("aria-label", `${me.def.name}：デモ`);
+    me.poseIdle();
+  }
+  if (!live) Object.values(agents).forEach(agentLoop);
+}
+
+function applyStatus(data){
+  lastSnapshot = data;
+  changeMode(true);
+  for (const def of ROSTER){
+    const me = agents[def.id], record = data.agents[def.id];
+    me.spr.dataset.state = me.desk.dataset.state = record.state;
+    me.stateLabel.textContent = STATE_LABELS[record.state];
+    me.spr.setAttribute("aria-label", `${def.name}：${STATE_LABELS[record.state]}`);
+    record.state === "working" ? me.poseWork() : me.poseIdle();
+  }
+  const warning = data.sources && Object.values(data.sources).some(value => value !== "ok");
+  document.getElementById("connection").textContent =
+    "実測表示 — 更新 " + new Date(data.updatedAt).toLocaleTimeString("ja-JP", {timeZone:"Asia/Tokyo"}) +
+    (warning ? "（一部の監視元が未検出・読み取りエラー）" : "");
+  renderCenter();
+}
+
+async function pollStatus(){
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 2500);
+  try {
+    const response = await fetch('status.json', {cache:"no-store", signal:controller.signal});
+    if (!response.ok) throw statusError(response.status === 404
+      ? "status.jsonが見つかりません。見回り役の起動とサーバーの作業フォルダを確認してください"
+      : `稼働データを取得できません（HTTP ${response.status}）。サーバーを確認してください`);
+    let data;
+    try { data = await response.json(); }
+    catch (error){
+      if (error.name === "AbortError") throw error;
+      throw statusError("status.jsonを読み取れません。watcher.pyの表示を確認してください");
+    }
+    applyStatus(validateStatus(data));
+  } catch (error) {
+    changeMode(false);
+    renderCenter();
+    document.getElementById("connection").textContent = "デモ表示 — " +
+      (error.statusMessage || (error.name === "AbortError"
+        ? "サーバーの応答が時間切れになりました。HTTPサーバーを確認してください"
+        : "サーバーに接続できません。HTTPサーバーのターミナルを確認してください"));
+  } finally {
+    clearTimeout(timeout);
+    setTimeout(pollStatus, 4000);
+  }
+}
+pollStatus();
 </script>
 </body>
 </html>
