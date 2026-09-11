@@ -655,10 +655,18 @@ function applyStatus(data){
     me.spr.setAttribute("aria-label", `${def.name}：${STATE_LABELS[record.state]}`);
     if (!me.walking) me.syncPose();   // 歩いている最中の絵は上書きしない
   }
-  const warning = data.sources && Object.values(data.sources).some(value => value !== "ok");
+  const warnings = [];
+  if (data.sources?.claude === "limited"){
+    const selected = data.claudeScan?.selected;
+    warnings.push(Number.isInteger(selected) && selected > 0
+      ? `Claudeは更新の新しい${selected}件を監視中（上限あり）`
+      : "Claudeの監視件数を上限で制限中");
+  }
+  if (data.sources && Object.values(data.sources).some(value => value !== "ok" && value !== "limited"))
+    warnings.push("一部の監視元が未検出・読み取りエラー");
   document.getElementById("connection").textContent =
     "実測表示 — 更新 " + new Date(data.updatedAt).toLocaleTimeString("ja-JP", {timeZone:"Asia/Tokyo"}) +
-    (warning ? "（一部の監視元が未検出・読み取りエラー）" : "");
+    (warnings.length ? "（" + warnings.join(" / ") + "）" : "");
   renderCenter();
 }
 

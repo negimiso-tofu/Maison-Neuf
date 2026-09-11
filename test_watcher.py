@@ -214,6 +214,77 @@ class WatcherTests(unittest.TestCase):
         self.assertEqual(result['agents']['celine']['detail'], 'Edit')
         self.assertEqual(self.w.offsets[path][0], len(after))
 
+    def test_projects_root_and_direct_sessions_are_both_monitored(self):
+        for name, tool in (('project-a', 'Write'), ('project-b', 'WebSearch')):
+            folder = self.claude / name
+            folder.mkdir()
+            (folder / 'session.jsonl').write_bytes(event(self.now, tool))
+        (self.claude / 'direct.jsonl').write_bytes(event(self.now, 'Read'))
+        result = self.w.poll(self.now)
+        for key in ('celine', 'verity', 'clarice'):
+            self.assertEqual(result['agents'][key]['state'], 'working')
+        self.assertEqual(result['claudeScan']['selected'], 3)
+        self.assertEqual(result['sources']['claude'], 'ok')
+        single = watcher.Watcher(self.roster, self.claude / 'project-b', self.codex, [self.images])
+        self.assertEqual(single.poll(self.now)['agents']['verity']['state'], 'working')
+
+    def test_newest_session_limit_and_updated_project_promotion(self):
+        paths = []
+        for index, tool in enumerate(('WebSearch', 'Write', 'Grep')):
+            folder = self.claude / f'project-{index}'
+            folder.mkdir()
+            path = folder / 'session.jsonl'
+            path.write_bytes(event(self.now, tool))
+            os.utime(path, (self.now + index, self.now + index))
+            paths.append(path)
+        limited = watcher.Watcher(self.roster, self.claude, self.codex, [self.images], max_sessions=2)
+        with patch.object(watcher, 'metadata', wraps=watcher.metadata) as parse:
+            result = limited.poll(self.now)
+        self.assertEqual(parse.call_count, 2)
+        self.assertEqual(result['agents']['verity']['state'], 'away')
+        self.assertEqual(result['agents']['celine']['state'], 'working')
+        self.assertEqual(result['agents']['sylvia']['state'], 'working')
+        self.assertEqual(result['sources']['claude'], 'limited')
+        self.assertEqual(result['claudeScan'], {'found': 3, 'selected': 2, 'deferred': 1, 'limit': 2})
+        paths[0].write_bytes(event(self.now + 4, 'WebSearch'))
+        os.utime(paths[0], (self.now + 4, self.now + 4))
+        self.assertEqual(limited.poll(self.now + 4)['agents']['verity']['state'], 'working')
+        self.assertEqual(limited.poll(self.now + 8)['sources']['claude'], 'limited')
+
+    def test_project_scan_does_not_descend_beyond_one_level(self):
+        project = self.claude / 'project-a'
+        nested = project / 'nested'
+        nested.mkdir(parents=True)
+        (nested / 'ignored.jsonl').write_bytes(event(self.now, 'Write'))
+        (project / 'session.jsonl').write_bytes(event(self.now, 'Read'))
+        result = self.w.poll(self.now)
+        self.assertEqual(result['claudeScan']['found'], 1)
+        self.assertEqual(result['agents']['celine']['state'], 'away')
+        for name in ('API_KEY.jsonl', 'SECRET.jsonl', 'TOKEN.jsonl', 'PASSWORD.jsonl'):
+            self.assertFalse(watcher.safe_path(Path(name)))
+
+    def test_unreadable_project_reports_error_without_hiding_other_projects(self):
+        blocked = self.claude / 'blocked-project'
+        blocked.mkdir()
+        (self.claude / 'readable.jsonl').write_bytes(event(self.now))
+        original = Path.iterdir
+        def listing(path):
+            if path == blocked:
+                raise PermissionError('Synthetic test error')
+            return original(path)
+        with patch.object(Path, 'iterdir', listing):
+            result = self.w.poll(self.now)
+        self.assertEqual(result['sources']['claude'], 'error')
+        self.assertEqual(result['agents']['clarice']['state'], 'working')
+
+    def test_default_project_root_and_session_limit_validation(self):
+        self.assertEqual(watcher.DEFAULT_CLAUDE_DIR, Path.home() / '.claude/projects')
+        with self.assertRaises(ValueError):
+            watcher.Watcher(self.roster, self.claude, self.codex, [self.images], max_sessions=0)
+        (self.claude / 'one.jsonl').write_bytes(event(self.now))
+        exact = watcher.Watcher(self.roster, self.claude, self.codex, [self.images], max_sessions=1)
+        self.assertEqual(exact.poll(self.now)['sources']['claude'], 'ok')
+
     def test_status_file_and_missing_sources(self):
         self.w.claude_dir = self.root / 'missing'
         payload = self.w.poll(self.now)

@@ -11,6 +11,8 @@ JST = timezone(timedelta(hours=9))
 TAIL_BYTES = 8192
 MAX_READ = 1 << 20  # Per-poll ceiling; a burst larger than this drops its oldest part.
 ANCHOR = 32         # Bytes re-read to confirm the file was appended to, not replaced.
+MAX_SESSIONS = 40
+DEFAULT_CLAUDE_DIR = Path.home() / '.claude/projects'
 STRING = re.compile(rb'"(?:[^"\\\x00-\x1f]|\\(?:["\\/bfnrt]|u[0-9a-fA-F]{4}))*"')
 NUMBER = re.compile(rb'-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?')
 
@@ -159,7 +161,9 @@ def safe_path(path):
 
 
 class Watcher:
-    def __init__(self, roster, claude_dir, codex_dir, image_dirs):
+    def __init__(self, roster, claude_dir, codex_dir, image_dirs, max_sessions=MAX_SESSIONS):
+        if not isinstance(max_sessions, int) or max_sessions < 1:
+            raise ValueError('max_sessions must be a positive integer')
         self.roster = roster
         self.claude_dir, self.codex_dir = claude_dir, codex_dir
         self.image_dirs = image_dirs
@@ -173,6 +177,34 @@ class Watcher:
         self.artifacts = []
         self.artifact_files = {}
         self.artifact_baseline = set()
+        self.max_sessions = max_sessions
+        self.claude_scan = {'found': 0, 'selected': 0, 'deferred': 0, 'limit': max_sessions}
+
+    def claude_candidates(self):
+        """Direct sessions plus one project-directory level; never follow links."""
+        candidates, failures = [], 0
+
+        def inspect(folder, include_projects):
+            nonlocal failures
+            try:
+                for path in folder.iterdir():
+                    if (not safe_path(path) or path.name.startswith('.') or path.is_symlink()
+                            or getattr(path, 'is_junction', lambda: False)()):
+                        continue
+                    try:
+                        if include_projects and path.is_dir():
+                            inspect(path, False)
+                        elif path.suffix == '.jsonl' and path.is_file():
+                            candidates.append((path.stat().st_mtime_ns, path))
+                    except OSError:
+                        failures += 1
+            except FileNotFoundError:
+                pass
+            except OSError:
+                failures += 1
+
+        inspect(self.claude_dir, True)
+        return sorted(candidates, reverse=True), failures
 
     def mark(self, source, stamp, detail, now, skill=None, tool=None):
         """Attribute one event: skill name first, then tool name, then source."""
@@ -191,16 +223,13 @@ class Watcher:
                 self.seen[key] = (stamp, detail)
 
     def scan_claude(self, now):
-        failures = 0
-        candidates = []
+        candidates, failures = self.claude_candidates()
+        selected = candidates[:self.max_sessions]
+        deferred = len(candidates) - len(selected)
+        self.claude_scan = {'found': len(candidates), 'selected': len(selected),
+                            'deferred': deferred, 'limit': self.max_sessions}
         try:
-            for path in self.claude_dir.glob('*.jsonl'):
-                if safe_path(path):
-                    try:
-                        candidates.append((path.stat().st_mtime_ns, path))
-                    except OSError:
-                        failures += 1
-            for _, path in sorted(candidates, reverse=True):
+            for _, path in selected:
                 try:
                     stat = path.stat()
                     signature = (stat.st_mtime_ns, stat.st_size, stat.st_ino)
@@ -251,7 +280,8 @@ class Watcher:
                     self.files[path] = (signature, file_failures)
                 except OSError:
                     failures += 1
-            self.health['claude'] = 'error' if failures else ('ok' if candidates else 'missing')
+            self.health['claude'] = ('error' if failures else 'limited' if deferred
+                                     else 'ok' if candidates else 'missing')
         except OSError:
             self.health['claude'] = 'error'
 
@@ -299,7 +329,8 @@ class Watcher:
             key: {'state': state_at(stamp, now), 'lastSeen': iso(stamp) if stamp is not None else None,
                   'detail': detail}
             for key, (stamp, detail) in self.seen.items()}, 'sources': self.health.copy(),
-            'tasks': list(self.tasks.values()), 'artifacts': self.artifacts.copy()}
+            'tasks': list(self.tasks.values()), 'artifacts': self.artifacts.copy(),
+            'claudeScan': self.claude_scan.copy()}
 
     def scan_artifacts(self, now):
         """Only file names and stat metadata, in explicitly monitored directories."""
@@ -339,13 +370,19 @@ def write_status(path, payload):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--claude-dir', type=Path, default=Path.home() / '.claude/projects/C--Users-user-OneDrive--------claude')
+    parser.add_argument('--claude-dir', type=Path, default=DEFAULT_CLAUDE_DIR,
+                        help='Claude projects root or a single project directory')
+    parser.add_argument('--max-sessions', type=int, default=MAX_SESSIONS,
+                        help='Maximum sessions selected by newest modification time (default: 40)')
     parser.add_argument('--codex-dir', type=Path, default=Path.home() / '.codex')
     parser.add_argument('--image-dir', action='append', type=Path, default=[], help='Additional image output directory (repeatable; non-recursive)')
     parser.add_argument('--once', action='store_true')
     args = parser.parse_args()
+    if args.max_sessions < 1:
+        parser.error('--max-sessions must be positive')
     watcher = Watcher(load_roster(BASE / 'preview.html'), args.claude_dir, args.codex_dir,
-                      list(dict.fromkeys([BASE] + [path.resolve() for path in args.image_dir])))
+                      list(dict.fromkeys([BASE] + [path.resolve() for path in args.image_dir])),
+                      max_sessions=args.max_sessions)
     print('Activity watcher: 4-second interval. Session content is never logged. Ctrl+C to stop.')
     try:
         while True:

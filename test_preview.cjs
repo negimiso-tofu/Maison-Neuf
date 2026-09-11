@@ -40,6 +40,12 @@ async function main(){
   assert.equal(run('agents.aurelia.spr.dataset.state'), 'away');
   assert.equal(run('agents.clarice.spr.children[1].src'), 'Clarice_01_working_48x48.png');
   assert.equal(elements['workers-body'].children.length, 9);
+  sandbox.payload.sources = {claude:'limited',codex:'ok',images:'ok'};
+  sandbox.payload.claudeScan = {selected:40,found:50,deferred:10,limit:40};
+  run('applyStatus(payload)');
+  assert.match(elements.connection.textContent, /新しい40件を監視中/);
+  assert.doesNotMatch(elements.connection.textContent, /未検出・読み取りエラー/);
+  sandbox.payload.sources.claude = 'ok';
   run('agents.clarice.spr.onclick()');
   assert.equal(elements['card-name'].textContent, 'クラリス');
   assert.match(elements['card-skills'].textContent, /Claude Code/);
