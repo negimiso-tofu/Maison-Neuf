@@ -200,7 +200,7 @@
 </main>
 
 <p class="legend">
-  実測表示：60秒以内は稼働中、5分未満は待機中、5分以上は退室中（半透明）。<br>
+  実測表示：60秒以内は稼働中、30分未満は待機中、30分以上は退室中（半透明）。<br>
   稼働中はよく席を立ち、待機中はたまに、退室中は動きません。出歩く量が実際の稼働の濃さです。<br>
   見回り役が停止・未接続のときは、全員が訪問し合うデモ表示に切り替わります。
 </p>
@@ -227,7 +227,7 @@ const ROSTER = [
   },
   {
     id:"verity", name:"ヴェリティ", room:"調査室", accent:"#b8433a",
-    activity:{"source":"skill","skills":["company-check","案件応募"],"tools":["WebSearch","WebFetch"]},
+    activity:{"source":"skill","skills":["company-check","案件応募"],"tools":["WebSearch", "WebFetch", "ToolSearch", "SearchSkills", "SearchPlugins"]},
     col:0, row:0,
     sprites:{
       idle:"png/Verity_01_idle_48x48.png", working:"png/Verity_02_working_48x48.png",
@@ -239,7 +239,7 @@ const ROSTER = [
   },
   {
     id:"aurelia", name:"オーレリア", room:"準備の間", accent:"#b07c1e",
-    activity:{"source":"skill","skills":["kigyobetsu-mensetsu"],"tools":["Agent","Task"]},
+    activity:{"source":"skill","skills":["kigyobetsu-mensetsu"],"tools":["Agent", "Task", "EnterPlanMode", "ExitPlanMode", "TaskOutput", "TaskStop"]},
     col:1, row:0,
     sprites:{
       idle:"png/Aurelia_01_idle_48x48.png", working:"png/Aurelia_02_working_48x48.png",
@@ -251,7 +251,7 @@ const ROSTER = [
   },
   {
     id:"sylvia", name:"シルヴィア", room:"記録の間", accent:"#2f6b4f",
-    activity:{"source":"skill","skills":["mensetsu-kiroku"],"tools":["Grep","Glob"]},
+    activity:{"source":"skill","skills":["mensetsu-kiroku"],"tools":["Grep", "Glob", "Read"]},
     col:2, row:0,
     sprites:{
       idle:"png/Sylvia_01_idle_48x48.png", working:"png/Sylvia_02_working_48x48.png",
@@ -263,7 +263,7 @@ const ROSTER = [
   },
   {
     id:"celine", name:"セリーヌ", room:"文机の間", accent:"#3b4b8a",
-    activity:{"source":"skill","skills":["議事録","報告書","提案書","メール"],"tools":["Write","Edit","NotebookEdit"]},
+    activity:{"source":"skill","skills":["議事録","報告書","提案書","メール"],"tools":["Write", "Edit", "NotebookEdit"]},
     col:1, row:1,
     sprites:{
       idle:"png/Celine_01_idle_48x48.png", working:"png/Celine_02_working_48x48.png",
@@ -275,7 +275,7 @@ const ROSTER = [
   },
   {
     id:"lumiere", name:"リュミエール", room:"画室", accent:"#3f9bb0",
-    activity:{"source":"images","skills":[],"tools":["Artifact","SendUserFile"]},
+    activity:{"source":"images","skills":[],"tools":["Artifact", "SendUserFile", "mcp__visualize__show_widget"]},
     role:"画像生成（GPT）",
     col:2, row:1,
     sprites:{
@@ -288,7 +288,7 @@ const ROSTER = [
   },
   {
     id:"rosalie", name:"ロザリー", room:"聞き取りの間", accent:"#c46a86",
-    activity:{"source":"skill","skills":["商談ヒアリング"],"tools":["AskUserQuestion"]},
+    activity:{"source":"skill","skills":["商談ヒアリング"],"tools":["AskUserQuestion", "SendMessage", "ListAgents"]},
     col:0, row:2,
     sprites:{
       idle:"png/Rosalie_01_idle_48x48.png", working:"png/Rosalie_02_working_48x48.png",
@@ -300,7 +300,7 @@ const ROSTER = [
   },
   {
     id:"iris", name:"イリス", room:"手帳の間", accent:"#9b8fc2",
-    activity:{"source":"skill","skills":["タスク整理","朝の準備"],"tools":["TodoWrite","ScheduleWakeup"]},
+    activity:{"source":"skill","skills":["タスク整理","朝の準備"],"tools":["TodoWrite", "ScheduleWakeup", "CronCreate", "CronList", "CronDelete", "Monitor"]},
     col:1, row:2,
     sprites:{
       idle:"png/Iris_01_idle_48x48.png", working:"png/Iris_02_working_48x48.png",

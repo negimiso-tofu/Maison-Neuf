@@ -9,7 +9,7 @@ from unittest.mock import patch
 import watcher
 
 
-def event(stamp, name='Read', skill=None, **extra):
+def event(stamp, name='Bash', skill=None, **extra):
     return json.dumps({'type': 'assistant', 'timestamp': watcher.iso(stamp),
                        'message': {'content': [
                            {'type': 'text', 'text': 'PRIVATE_CONVERSATION'},
@@ -51,14 +51,14 @@ class WatcherTests(unittest.TestCase):
         record = {'type': 'assistant', 'timestamp': watcher.iso(self.now),
                   'message': {'content': [{'type': 'text', 'text':
                       '{"type":"tool_use","name":"Skill","input":{"skill":"company-check"}}'}]},
-                  'unrelated': {'type': 'tool_use', 'name': 'Read'}}
+                  'unrelated': {'type': 'tool_use', 'name': 'Bash'}}
         self.assertEqual(watcher.metadata(json.dumps(record).encode()), [])
 
     def test_all_sessions_and_skill_mappings(self):
         for index, (key, config) in enumerate(self.roster.items()):
             for offset, skill in enumerate(config['skills']):
                 (self.claude / f'{index}-{offset}.jsonl').write_bytes(event(self.now, 'Skill', skill))
-        (self.claude / 'generic.jsonl').write_bytes(event(self.now, 'Read'))
+        (self.claude / 'generic.jsonl').write_bytes(event(self.now, 'Bash'))
         status = self.w.poll(self.now)
         for key, config in self.roster.items():
             if config['source'] in ('claude', 'skill'):
@@ -68,7 +68,7 @@ class WatcherTests(unittest.TestCase):
     def test_boundaries_and_no_new_event_on_repeated_poll(self):
         (self.claude / 'one.jsonl').write_bytes(event(self.now))
         for elapsed, state in ((0, 'working'), (60, 'working'), (60.001, 'idle'),
-                               (299.999, 'idle'), (300, 'away')):
+                               (1799.999, 'idle'), (1800, 'away')):
             self.assertEqual(self.w.poll(self.now + elapsed)['agents']['clarice']['state'], state)
 
     def test_tail_seek_partial_append_and_bad_record(self):
@@ -96,7 +96,7 @@ class WatcherTests(unittest.TestCase):
 
         with patch.object(Path, 'open', bounded):
             status = self.w.poll(self.now)
-        self.assertTrue(all(start > 0 and count == 8192 for start, count in reads))
+        self.assertTrue(all(start > 0 and count == watcher.TAIL_BYTES for start, count in reads))
         self.assertEqual(status['agents']['clarice']['state'], 'working')
         self.assertEqual(status['agents']['iris']['state'], 'away')
         with path.open('ab') as stream:
@@ -125,7 +125,7 @@ class WatcherTests(unittest.TestCase):
         self.assertEqual(self.w.poll(self.now)['agents']['lumiere']['state'], 'away')
         (self.images / 'new.png').write_bytes(b'fake')
         self.assertEqual(self.w.poll(self.now + 4)['agents']['lumiere']['state'], 'working')
-        self.assertEqual(self.w.poll(self.now + 304)['agents']['lumiere']['state'], 'away')
+        self.assertEqual(self.w.poll(self.now + 1804)['agents']['lumiere']['state'], 'away')
 
     def test_future_timestamp_and_invalid_metadata(self):
         (self.claude / 'future.jsonl').write_bytes(event(self.now + 1000))
@@ -188,8 +188,8 @@ class WatcherTests(unittest.TestCase):
         path = self.claude / 'burst.jsonl'
         path.write_bytes(event(self.now - 100))
         self.w.poll(self.now)
-        # The unique Skill event is outside the final 8KiB, but after the saved cursor.
-        burst = event(self.now, 'Skill', 'company-check') + event(self.now, 'Read') * 60
+        # The unique Skill event falls outside the first-sight tail, but after the saved cursor.
+        burst = event(self.now, 'Skill', 'company-check') + event(self.now, 'Bash') * 2000
         self.assertGreater(len(burst), watcher.TAIL_BYTES)
         self.assertLess(len(burst), watcher.MAX_READ)
         with path.open('ab') as stream:
@@ -201,7 +201,7 @@ class WatcherTests(unittest.TestCase):
 
     def test_same_length_replacement_checks_anchor_and_restarts(self):
         path = self.claude / 'replaced.jsonl'
-        before = event(self.now - 100, 'Read', padding='AAAA')
+        before = event(self.now - 100, 'Bash', padding='AAAA')
         after = event(self.now, 'Edit', padding='BBBB')
         self.assertEqual(len(before), len(after))
         path.write_bytes(before)
@@ -219,7 +219,7 @@ class WatcherTests(unittest.TestCase):
             folder = self.claude / name
             folder.mkdir()
             (folder / 'session.jsonl').write_bytes(event(self.now, tool))
-        (self.claude / 'direct.jsonl').write_bytes(event(self.now, 'Read'))
+        (self.claude / 'direct.jsonl').write_bytes(event(self.now, 'Bash'))
         result = self.w.poll(self.now)
         for key in ('celine', 'verity', 'clarice'):
             self.assertEqual(result['agents'][key]['state'], 'working')
@@ -256,7 +256,7 @@ class WatcherTests(unittest.TestCase):
         nested = project / 'nested'
         nested.mkdir(parents=True)
         (nested / 'ignored.jsonl').write_bytes(event(self.now, 'Write'))
-        (project / 'session.jsonl').write_bytes(event(self.now, 'Read'))
+        (project / 'session.jsonl').write_bytes(event(self.now, 'Bash'))
         result = self.w.poll(self.now)
         self.assertEqual(result['claudeScan']['found'], 1)
         self.assertEqual(result['agents']['celine']['state'], 'away')

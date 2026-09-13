@@ -169,15 +169,20 @@ Codexが読み込む前提の、現状の実装メモ。
 
 | 検知した内容 | 光らせるキャラ |
 |---|---|
-| `Skill: company-check` / `案件応募`、ツール `WebSearch` / `WebFetch` | ヴェリティ |
-| `Skill: kigyobetsu-mensetsu`、ツール `Agent` / `Task` | オーレリア |
-| `Skill: mensetsu-kiroku`、ツール `Grep` / `Glob` | シルヴィア |
+| `Skill: company-check` / `案件応募`、ツール `WebSearch` / `WebFetch` / `ToolSearch` / `SearchSkills` / `SearchPlugins` | ヴェリティ |
+| `Skill: kigyobetsu-mensetsu`、ツール `Agent` / `Task` / `EnterPlanMode` / `ExitPlanMode` / `TaskOutput` / `TaskStop` | オーレリア |
+| `Skill: mensetsu-kiroku`、ツール `Grep` / `Glob` / `Read` | シルヴィア |
 | `Skill: 議事録` / `報告書` / `提案書` / `メール`、ツール `Write` / `Edit` / `NotebookEdit` | セリーヌ |
-| `Skill: 商談ヒアリング`、ツール `AskUserQuestion` | ロザリー |
-| `Skill: タスク整理` / `朝の準備`、ツール `TodoWrite` / `ScheduleWakeup` | イリス |
-| 上記以外のツール使用（`Bash`・`Read` ほか） | クラリス |
+| `Skill: 商談ヒアリング`、ツール `AskUserQuestion` / `SendMessage` / `ListAgents` | ロザリー |
+| `Skill: タスク整理` / `朝の準備`、ツール `TodoWrite` / `ScheduleWakeup` / `CronCreate` / `CronList` / `CronDelete` / `Monitor` | イリス |
+| 上記以外のツール使用（`Bash` ほか） | クラリス |
 | `.codex`のsqlite／WALが更新された（Bashの引数は読まない） | コレット |
-| 新しい画像ファイルが出現、ツール `Artifact` / `SendUserFile` | リュミエール |
+| 新しい画像ファイルが出現、ツール `Artifact` / `SendUserFile` / `show_widget` | リュミエール |
+
+**2026-09-13の拡張**：9人中7人が常に退室中に見える問題への対処。担当ツールを職掌に沿って広げ、
+`Read` をクラリスからシルヴィア（記録の間）へ移して受け皿の偏りを解いた。あわせて退室までの猶予を
+5分から30分へ、初回に読む量を8KiBから512KiBへ広げている。**状態の作り方は変えていない**——
+判定に使う実イベントの取りこぼしを減らしただけで、動いていないものを動いているようには見せない。
 
 **なぜツール名まで見るのか（2026-09-11の改修）**：当初はスキル名だけで判定していたため、
 `Skill` ツールを明示的に呼ばない限り6名が永久に退室中のままだった（`lastSeen` が生涯 `null`）。
@@ -189,8 +194,8 @@ Codexが読み込む前提の、現状の実装メモ。
 | 状態 | 条件 | 見せ方 |
 |---|---|---|
 | **稼働中** | 直近60秒以内に動きがある | `working`のスプライト。名札を明るく |
-| **待機中** | 5分以内に動きがあったが直近は静か | `idle`のスプライト |
-| **退室中** | 5分以上動きなし、または未検知 | 不透明度65%・彩度45%、灰色の名札で席を示す。移動しない |
+| **待機中** | 30分以内に動きがあったが直近は静か | `idle`のスプライト |
+| **退室中** | 30分以上動きなし、または未検知 | 不透明度65%・彩度45%、灰色の名札で席を示す。移動しない |
 
 #### (5) 中継の仕組み
 
@@ -199,7 +204,7 @@ Codexが読み込む前提の、現状の実装メモ。
 ```
 watcher.py（新規作成）
   ├ 3〜5秒おきに実行
-  ├ ① 更新の新しい最大40セッションを初回末尾8KiB、以後追記位置から読む
+  ├ ① 更新の新しい最大40セッションを初回末尾512KiB、以後追記位置から読む
   ├ ② ~/.codex/*.sqlite* の更新時刻を見る
   ├ ③ 画像フォルダの新しいファイルを見る
   └ status.json に9名の状態を書き出す
@@ -243,7 +248,7 @@ preview.html が数秒おきに fetch('status.json') → ROSTERの状態へ反�
 - JSON全体を `json.loads` で展開しない。構造と `type` を判別し、`timestamp`・ツール名・スキル名だけをデコードする。その他の値はバイト列として読み飛ばし、会話本文・thinking・コマンド引数を文字列化・出力・保存しない。実装作業でも実セッションの本文は表示しない。
 - コレットはSQLite／WALの `stat` のみで判定。バックグラウンドのDB更新も反応し得るため、これは活動の近似値。Bashのコマンド文字列は読まない。
 - 画像は起動後の新規ファイル出現を検知する。起動時に既存画像を基準化し、既存スプライトを新規生成と誤認しない。画像の内容・ファイル名は `status.json` に出さず、detailは「新しい画像」。追加フォルダは `--image-dir`（複数指定可、直下のみ）で指定する。起動.batは `image_dir.txt`（git管理外）にパスが書かれていればそれを渡し、無ければ `--image-dir` を付けずに起動する。画像のファイル名は別のartifacts欄には記録される。
-- `lastSeen` は日本時間のISO形式。60秒以内はworking、60秒超〜300秒未満はidle、300秒以上または未検知はaway。
+- `lastSeen` は日本時間のISO形式。60秒以内はworking、60秒超〜1800秒未満はidle、1800秒以上または未検知はaway。しきい値は `WORKING_SECONDS` / `IDLE_SECONDS` で一元管理。
 - `sources` に `claude` / `codex` / `images` の `ok`・`missing`・`error` を付加。Claudeの件数上限超過時は `limited`。`claudeScan` にfound・selected・deferred・limitを付加。監視元の欠落・失敗を画面上部で示す。読み取れない監視元について活動を捏造しない。
 - ブラウザは4秒ごとに再取得（通信終了後から計時、タイムアウト2.5秒）。20秒超の未更新、未来すぎる時刻、欠損・破損・不正なキャラ状態はデモへ復帰。実測へ切り替えるとデモの待機・歩行処理を世代番号で無効化する。
 - デモへ戻った理由を画面上部に個別表示する。更新停止時は最終更新時刻と経過秒数、404時は見回り役と配信フォルダ、接続失敗・タイムアウト時はHTTPサーバー、JSON破損時は見回り役を確認する案内を出す。原因別表示のJavaScript自動テスト合格。

@@ -8,9 +8,11 @@ import time
 
 BASE = Path(__file__).resolve().parent
 JST = timezone(timedelta(hours=9))
-TAIL_BYTES = 8192
-MAX_READ = 1 << 20  # Per-poll ceiling; a burst larger than this drops its oldest part.
+TAIL_BYTES = 1 << 19   # First sight of a live session: enough tail to refill the idle window.
+MAX_READ = 1 << 22  # Per-poll ceiling; a burst larger than this drops its oldest part.
 ANCHOR = 32         # Bytes re-read to confirm the file was appended to, not replaced.
+WORKING_SECONDS = 60    # Within this, the character is actively working.
+IDLE_SECONDS = 1800     # Within this, still at the desk; beyond it, out of the room.
 MAX_SESSIONS = 40
 DEFAULT_CLAUDE_DIR = Path.home() / '.claude/projects'
 STRING = re.compile(rb'"(?:[^"\\\x00-\x1f]|\\(?:["\\/bfnrt]|u[0-9a-fA-F]{4}))*"')
@@ -140,9 +142,9 @@ def iso(stamp):
 
 
 def state_at(stamp, now):
-    if stamp is None or now - stamp >= 300:
+    if stamp is None or now - stamp >= IDLE_SECONDS:
         return 'away'
-    return 'working' if now - stamp <= 60 else 'idle'
+    return 'working' if now - stamp <= WORKING_SECONDS else 'idle'
 
 
 def load_roster(path):
@@ -380,8 +382,10 @@ def main():
     args = parser.parse_args()
     if args.max_sessions < 1:
         parser.error('--max-sessions must be positive')
+    # png/ is where finished artwork lands; scanning is non-recursive, so name it.
+    defaults = [BASE] + [BASE / 'png'] if (BASE / 'png').is_dir() else [BASE]
     watcher = Watcher(load_roster(BASE / 'preview.html'), args.claude_dir, args.codex_dir,
-                      list(dict.fromkeys([BASE] + [path.resolve() for path in args.image_dir])),
+                      list(dict.fromkeys(defaults + [path.resolve() for path in args.image_dir])),
                       max_sessions=args.max_sessions)
     print('Activity watcher: 4-second interval. Session content is never logged. Ctrl+C to stop.')
     try:
