@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Munder Difflin プレビュー</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <style>
   :root{
     --floor-a:#e9e2d6;
@@ -76,7 +77,7 @@
     box-shadow:0 20px 50px rgba(0,0,0,.45);
     overflow:hidden;
   }
-  .stage.has-background{ background-image:url('background.png'); background-size:900px 680px; background-repeat:no-repeat; }
+  .stage.has-background{ background-image:url('png/background.png'); background-size:900px 680px; background-repeat:no-repeat; }
   .stage.has-background .desk-top{ visibility:hidden; }
   .stage.has-background .desk-label{ background:rgba(255,248,229,.93); border:1px solid #cbb78b; border-radius:5px; padding:2px 0; }
   .desk{
@@ -217,10 +218,10 @@ const ROSTER = [
     role:"統括・窓口（Claude Code）",
     col:0, row:1,
     sprites:{
-      idle:"Clarice_00_idle_48x48.png", working:"Clarice_01_working_48x48.png",
-      back:"Clarice_02_back_48x48.png",
-      walkLeft:["Clarice_04_walk_left_1_48x48.png","Clarice_05_walk_left_2_48x48.png"],
-      walkRight:["Clarice_06_walk_right_1_48x48.png","Clarice_07_walk_right_2_48x48.png"]
+      idle:"png/Clarice_00_idle_48x48.png", working:"png/Clarice_01_working_48x48.png",
+      back:"png/Clarice_02_back_48x48.png",
+      walkLeft:["png/Clarice_04_walk_left_1_48x48.png","png/Clarice_05_walk_left_2_48x48.png"],
+      walkRight:["png/Clarice_06_walk_right_1_48x48.png","png/Clarice_07_walk_right_2_48x48.png"]
     },
     lines:["みなさん、進み具合はいかがですか？","台帳に控えておきますわ。"]
   },
@@ -229,10 +230,10 @@ const ROSTER = [
     activity:{"source":"skill","skills":["company-check","案件応募"],"tools":["WebSearch","WebFetch"]},
     col:0, row:0,
     sprites:{
-      idle:"Verity_01_idle_48x48.png", working:"Verity_02_working_48x48.png",
-      back:"Verity_03_back_48x48.png",
-      walkLeft:["Verity_04_walk_left_1_48x48.png","Verity_05_walk_left_2_48x48.png"],
-      walkRight:["Verity_06_walk_right_1_48x48.png","Verity_07_walk_right_2_48x48.png"]
+      idle:"png/Verity_01_idle_48x48.png", working:"png/Verity_02_working_48x48.png",
+      back:"png/Verity_03_back_48x48.png",
+      walkLeft:["png/Verity_04_walk_left_1_48x48.png","png/Verity_05_walk_left_2_48x48.png"],
+      walkRight:["png/Verity_06_walk_right_1_48x48.png","png/Verity_07_walk_right_2_48x48.png"]
     },
     lines:["この会社、少し気になりますね。","裏を取ってまいります。"]
   },
@@ -241,10 +242,10 @@ const ROSTER = [
     activity:{"source":"skill","skills":["kigyobetsu-mensetsu"],"tools":["Agent","Task"]},
     col:1, row:0,
     sprites:{
-      idle:"Aurelia_01_idle_48x48.png", working:"Aurelia_02_working_48x48.png",
-      back:"Aurelia_03_back_48x48.png",
-      walkLeft:["Aurelia_04_walk_left_1_48x48.png","Aurelia_05_walk_left_2_48x48.png"],
-      walkRight:["Aurelia_06_walk_right_1_48x48.png","Aurelia_07_walk_right_2_48x48.png"]
+      idle:"png/Aurelia_01_idle_48x48.png", working:"png/Aurelia_02_working_48x48.png",
+      back:"png/Aurelia_03_back_48x48.png",
+      walkLeft:["png/Aurelia_04_walk_left_1_48x48.png","png/Aurelia_05_walk_left_2_48x48.png"],
+      walkRight:["png/Aurelia_06_walk_right_1_48x48.png","png/Aurelia_07_walk_right_2_48x48.png"]
     },
     lines:["その答え方、とても良いですよ。","本番のつもりでいきましょう。"]
   },
@@ -253,10 +254,10 @@ const ROSTER = [
     activity:{"source":"skill","skills":["mensetsu-kiroku"],"tools":["Grep","Glob"]},
     col:2, row:0,
     sprites:{
-      idle:"Sylvia_01_idle_48x48.png", working:"Sylvia_02_working_48x48.png",
-      back:"Sylvia_03_back_48x48.png",
-      walkLeft:["Sylvia_04_walk_left_1_48x48.png","Sylvia_05_walk_left_2_48x48.png"],
-      walkRight:["Sylvia_06_walk_right_1_48x48.png","Sylvia_07_walk_right_2_48x48.png"]
+      idle:"png/Sylvia_01_idle_48x48.png", working:"png/Sylvia_02_working_48x48.png",
+      back:"png/Sylvia_03_back_48x48.png",
+      walkLeft:["png/Sylvia_04_walk_left_1_48x48.png","png/Sylvia_05_walk_left_2_48x48.png"],
+      walkRight:["png/Sylvia_06_walk_right_1_48x48.png","png/Sylvia_07_walk_right_2_48x48.png"]
     },
     lines:["先ほどの要点、まとめました。","記録に残しておきます。"]
   },
@@ -265,10 +266,10 @@ const ROSTER = [
     activity:{"source":"skill","skills":["議事録","報告書","提案書","メール"],"tools":["Write","Edit","NotebookEdit"]},
     col:1, row:1,
     sprites:{
-      idle:"Celine_01_idle_48x48.png", working:"Celine_02_working_48x48.png",
-      back:"Celine_03_back_48x48.png",
-      walkLeft:["Celine_04_walk_left_1_48x48.png","Celine_05_walk_left_2_48x48.png"],
-      walkRight:["Celine_06_walk_right_1_48x48.png","Celine_07_walk_right_2_48x48.png"]
+      idle:"png/Celine_01_idle_48x48.png", working:"png/Celine_02_working_48x48.png",
+      back:"png/Celine_03_back_48x48.png",
+      walkLeft:["png/Celine_04_walk_left_1_48x48.png","png/Celine_05_walk_left_2_48x48.png"],
+      walkRight:["png/Celine_06_walk_right_1_48x48.png","png/Celine_07_walk_right_2_48x48.png"]
     },
     lines:["文面、整えておきますわ。","この一文は削りましょう。"]
   },
@@ -278,10 +279,10 @@ const ROSTER = [
     role:"画像生成（GPT）",
     col:2, row:1,
     sprites:{
-      idle:"Lumiere_01_idle_48x48.png", working:"Lumiere_02_working_48x48.png",
-      back:"Lumiere_03_back_48x48.png",
-      walkLeft:["Lumiere_04_walk_left_1_48x48.png","Lumiere_05_walk_left_2_48x48.png"],
-      walkRight:["Lumiere_06_walk_right_1_48x48.png","Lumiere_07_walk_right_2_48x48.png"]
+      idle:"png/Lumiere_01_idle_48x48.png", working:"png/Lumiere_02_working_48x48.png",
+      back:"png/Lumiere_03_back_48x48.png",
+      walkLeft:["png/Lumiere_04_walk_left_1_48x48.png","png/Lumiere_05_walk_left_2_48x48.png"],
+      walkRight:["png/Lumiere_06_walk_right_1_48x48.png","png/Lumiere_07_walk_right_2_48x48.png"]
     },
     lines:["いま描いております。","もう少しで仕上がります。"]
   },
@@ -290,10 +291,10 @@ const ROSTER = [
     activity:{"source":"skill","skills":["商談ヒアリング"],"tools":["AskUserQuestion"]},
     col:0, row:2,
     sprites:{
-      idle:"Rosalie_01_idle_48x48.png", working:"Rosalie_02_working_48x48.png",
-      back:"Rosalie_03_back_48x48.png",
-      walkLeft:["Rosalie_04_walk_left_1_48x48.png","Rosalie_05_walk_left_2_48x48.png"],
-      walkRight:["Rosalie_06_walk_right_1_48x48.png","Rosalie_07_walk_right_2_48x48.png"]
+      idle:"png/Rosalie_01_idle_48x48.png", working:"png/Rosalie_02_working_48x48.png",
+      back:"png/Rosalie_03_back_48x48.png",
+      walkLeft:["png/Rosalie_04_walk_left_1_48x48.png","png/Rosalie_05_walk_left_2_48x48.png"],
+      walkRight:["png/Rosalie_06_walk_right_1_48x48.png","png/Rosalie_07_walk_right_2_48x48.png"]
     },
     lines:["もう少し詳しく伺えますか？","なるほど、そういうことですね。"]
   },
@@ -302,10 +303,10 @@ const ROSTER = [
     activity:{"source":"skill","skills":["タスク整理","朝の準備"],"tools":["TodoWrite","ScheduleWakeup"]},
     col:1, row:2,
     sprites:{
-      idle:"Iris_01_idle_48x48.png", working:"Iris_02_working_48x48.png",
-      back:"Iris_03_back_48x48.png",
-      walkLeft:["Iris_04_walk_left_1_48x48.png","Iris_05_walk_left_2_48x48.png"],
-      walkRight:["Iris_06_walk_right_1_48x48.png","Iris_07_walk_right_2_48x48.png"]
+      idle:"png/Iris_01_idle_48x48.png", working:"png/Iris_02_working_48x48.png",
+      back:"png/Iris_03_back_48x48.png",
+      walkLeft:["png/Iris_04_walk_left_1_48x48.png","png/Iris_05_walk_left_2_48x48.png"],
+      walkRight:["png/Iris_06_walk_right_1_48x48.png","png/Iris_07_walk_right_2_48x48.png"]
     },
     lines:["次の期限は明後日です。","今日はここまでで十分ですわ。"]
   },
@@ -315,10 +316,10 @@ const ROSTER = [
     role:"構築（Codex）",
     col:2, row:2,
     sprites:{
-      idle:"Colette_01_idle_48x48.png", working:"Colette_02_working_48x48.png",
-      back:"Colette_03_back_48x48.png",
-      walkLeft:["Colette_04_walk_left_1_48x48.png","Colette_05_walk_left_2_48x48.png"],
-      walkRight:["Colette_06_walk_right_1_48x48.png","Colette_07_walk_right_2_48x48.png"]
+      idle:"png/Colette_01_idle_48x48.png", working:"png/Colette_02_working_48x48.png",
+      back:"png/Colette_03_back_48x48.png",
+      walkLeft:["png/Colette_04_walk_left_1_48x48.png","png/Colette_05_walk_left_2_48x48.png"],
+      walkRight:["png/Colette_06_walk_right_1_48x48.png","png/Colette_07_walk_right_2_48x48.png"]
     },
     lines:["ここ、組み直しておきます。","動くようになりました。"]
   }
@@ -334,7 +335,7 @@ const stage = document.getElementById("stage");
 const backgroundImage = document.createElement("img");
 backgroundImage.onload = () => stage.classList.add("has-background");
 backgroundImage.onerror = () => stage.classList.remove("has-background");
-backgroundImage.src = "background.png";
+backgroundImage.src = "png/background.png";
 let liveMode = false;
 let modeGeneration = 0;
 const motionPreference = typeof matchMedia === "function"

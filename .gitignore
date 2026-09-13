@@ -5,3 +5,6 @@ desktop.ini
 status.json
 status.json.tmp
 __pycache__/
+
+# ローカル設定（個人のフォルダパスを公開リポジトリに入れないため）
+image_dir.txt

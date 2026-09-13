@@ -3,11 +3,16 @@
 AIコーディングエージェント（Claude／Codex）とGPT画像生成を「AI社員」に見立て、
 仮想オフィスで働く様子を眺めるツール。メイド版。
 
+**制作：ねぎみそとうふ**
+
 体制：画像＝リュミエール（GPT）／設計＝クラリス（Claude）／構築＝Codex。
 
 - 設計の詳細は [`DESIGN.md`](./DESIGN.md) を参照
+- 扱うデータと公開時の注意は [`SECURITY.md`](./SECURITY.md) を参照
+- ライセンスは [`LICENSE`](./LICENSE)（MIT）
 - `preview.html` — 9名の稼働表示。監視データがないときは訪問し合うデモ
 - `watcher.py` — Claudeのツール・スキル、CodexのDB更新、画像出現を監視
+- `png/` — キャラクター画像・内装背景
 
 ## 動かし方
 
@@ -19,12 +24,12 @@ PowerShellでこのプロジェクトへ移動し、2つのターミナルでそ
 Python 3.10以上が必要。外部パッケージは不要。
 
 ```powershell
-cd "C:\Users\user\OneDrive\ドキュメント\VScode\Munder Difflin"
-python watcher.py --image-dir "C:\Users\user\Documents\Codex\2026-09-09\realtime-voice-chat\outputs"
+cd "<このリポジトリを置いたフォルダ>"
+python watcher.py --image-dir "<画像の出力フォルダ>"
 ```
 
 ```powershell
-cd "C:\Users\user\OneDrive\ドキュメント\VScode\Munder Difflin"
+cd "<このリポジトリを置いたフォルダ>"
 python -m http.server 8744 --bind 127.0.0.1
 ```
 
@@ -36,8 +41,18 @@ python -m http.server 8744 --bind 127.0.0.1
 画像フォルダは再帰探索せず、起動前からある画像は新規と数えない。
 
 ```powershell
-python watcher.py --image-dir "C:\実際の画像出力フォルダ"
+python watcher.py --image-dir "<画像の出力フォルダ>"
 ```
+
+`起動.bat` から使う場合は、このフォルダに **`image_dir.txt`** を作り、1行目にパスだけを書く。
+ランチャーが読み取って `--image-dir` に渡す。ファイルが無ければ付けずに起動する。
+
+```
+C:\自分の画像出力フォルダ
+```
+
+このファイルは `.gitignore` 済み。**個人のフォルダパスを公開リポジトリに入れないための仕組み**なので、
+スクリプトや説明書へ直接パスを書かないこと。
 
 画面上部の「実測表示／デモ表示」で接続を見分ける。
 60秒以内の活動は稼働中、60秒超〜5分未満は待機中、5分以上は退室中。
@@ -63,7 +78,7 @@ CodexはDB内容を開かず更新時刻だけを使う。画像も内容を開�
 ## 検証
 
 ```powershell
-cd "C:\Users\user\OneDrive\ドキュメント\VScode\Munder Difflin"
+cd "<このリポジトリを置いたフォルダ>"
 python -m unittest -v test_watcher
 node test_preview.cjs
 ```
@@ -128,9 +143,9 @@ PythonテストはマスターのPowerShell（Python 3.13.15）で10件すべて
 
 1. 「基本タスクの作成」で名前を `Munder Difflin watcher` にする。
 2. トリガーを「ログオン時」、操作を「プログラムの開始」にする。
-3. プログラムに `C:\Users\user\AppData\Local\Programs\Python\Python313\python.exe` を指定する。
-4. 引数に `watcher.py --image-dir "C:\Users\user\Documents\Codex\2026-09-09\realtime-voice-chat\outputs"` を指定する。
-5. 開始場所に `C:\Users\user\OneDrive\ドキュメント\VScode\Munder Difflin` を指定する。
+3. プログラムに自分の `python.exe` のフルパスを指定する（`where python` で調べられる）。
+4. 引数に `watcher.py` を指定する（画像フォルダは `image_dir.txt` で設定する）。
+5. 開始場所にこのリポジトリのフォルダを指定する。
 6. 作成後のプロパティで「ユーザーがログオンしているときのみ実行する」を選び、既に実行中なら「新しいインスタンスを開始しない」にする。管理者権限は不要。
 
 見回り役だけが起動するので、オフィスを見るときは `起動.bat` を開く。

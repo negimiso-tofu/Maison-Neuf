@@ -13,6 +13,16 @@ echo   Munder Difflin
 echo   ------------------------------
 echo.
 
+rem --- optional extra image folder ---
+rem     Put one bare path on line 1 of image_dir.txt. That file is git-ignored,
+rem     so a personal folder path never reaches the public repository.
+set IMAGE_DIR=
+set IMAGE_ARG=
+if exist "image_dir.txt" (
+    for /f "usebackq delims=" %%A in ("image_dir.txt") do set IMAGE_DIR=%%A
+)
+if defined IMAGE_DIR set IMAGE_ARG=--image-dir "%IMAGE_DIR%"
+
 rem --- watcher: skip if status.json was touched within the last 15s ---
 set WATCHER=0
 for /f %%A in ('powershell -NoProfile -Command "if ((Test-Path status.json) -and ((((Get-Date) - (Get-Item status.json).LastWriteTime).TotalSeconds) -lt 15)) { 1 } else { 0 }"') do set WATCHER=%%A
@@ -21,7 +31,7 @@ if "%WATCHER%"=="1" (
     echo   [1/2] watcher ... already running
 ) else (
     echo   [1/2] watcher ... starting
-    start "Munder Difflin - watcher" python watcher.py --image-dir "C:\Users\user\Documents\Codex\2026-09-09\realtime-voice-chat\outputs"
+    start "Munder Difflin - watcher" python watcher.py %IMAGE_ARG%
 )
 
 rem --- server: skip if port 8744 is already listening ---

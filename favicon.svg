@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <title>Munder Difflin</title>
+  <rect width="32" height="32" rx="7" fill="#382c49"/>
+  <path d="M7 5h14l4 4v18H7z" fill="#f5ead4"/>
+  <path d="M21 5v5h4z" fill="#c79951"/>
+  <path d="M10 23V12h3l3 5 3-5h3v11h-3v-6l-3 5-3-5v6z" fill="#59406f"/>
+</svg>

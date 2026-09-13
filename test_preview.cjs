@@ -38,7 +38,7 @@ async function main(){
   assert.equal(run('agents.clarice.stateLabel.textContent'), '稼働中');
   assert.equal(run('agents.verity.stateLabel.textContent'), '待機中');
   assert.equal(run('agents.aurelia.spr.dataset.state'), 'away');
-  assert.equal(run('agents.clarice.spr.children[1].src'), 'Clarice_01_working_48x48.png');
+  assert.equal(run('agents.clarice.spr.children[1].src'), 'png/Clarice_01_working_48x48.png');
   assert.equal(elements['workers-body'].children.length, 9);
   sandbox.payload.sources = {claude:'limited',codex:'ok',images:'ok'};
   sandbox.payload.claudeScan = {selected:40,found:50,deferred:10,limit:40};
@@ -60,7 +60,7 @@ async function main(){
   // Wake the demo loops created at startup. They must not override live poses.
   timers.splice(0, 9).forEach(timer=>timer.fn());
   await Promise.resolve(); await Promise.resolve();
-  assert.equal(run('agents.clarice.spr.children[1].src'), 'Clarice_01_working_48x48.png');
+  assert.equal(run('agents.clarice.spr.children[1].src'), 'png/Clarice_01_working_48x48.png');
   for (const mutation of [
     data=>data.updatedAt=new Date(Date.now()-21000).toISOString(),
     data=>data.updatedAt=new Date(Date.now()+60000).toISOString(),
@@ -81,7 +81,7 @@ async function main(){
   run('applyStatus(payload)');
   frames.splice(0).forEach(fn=>fn(100));
   assert.equal(run('agents.clarice.pos.x'), run('agents.clarice.home.x'));
-  assert.equal(run('agents.clarice.spr.children[1].src'), 'Clarice_01_working_48x48.png');
+  assert.equal(run('agents.clarice.spr.children[1].src'), 'png/Clarice_01_working_48x48.png');
   sandbox.fetch = async()=>({ok:true,json:async()=>{throw new Error('invalid JSON');}});
   await run('pollStatus()');
   assert.equal(run('liveMode'), false);
@@ -140,7 +140,7 @@ async function testLiveMotion(code, element, initiallyReduced = false){
   if(initiallyReduced){
     run(`snapshot.agents.clarice.state='working'; snapshot.agents.verity.state='idle'; applyStatus(snapshot); showAgent('clarice');`);
     await advance(30000, allHome);
-    assert.equal(run('agents.clarice.spr.children[1].src'), 'Clarice_01_working_48x48.png');
+    assert.equal(run('agents.clarice.spr.children[1].src'), 'png/Clarice_01_working_48x48.png');
     assert.equal(run('agents.verity.stateLabel.textContent'), '待機中');
     assert.match(nodes['card-state'].textContent, /稼働中/);
     assert.equal(run('workerRows.clarice.dataset.state'), 'working');
@@ -172,7 +172,7 @@ async function testLiveMotion(code, element, initiallyReduced = false){
   changeMotion(true);
   allHome();
   await advance(15000, allHome);
-  assert.equal(run('agents.clarice.spr.children[1].src'), 'Clarice_01_working_48x48.png');
+  assert.equal(run('agents.clarice.spr.children[1].src'), 'png/Clarice_01_working_48x48.png');
   changeMotion(false);
   let resumed = false;
   await advance(15000, ()=>{ if(run('agents.clarice.walking')) resumed = true; });
