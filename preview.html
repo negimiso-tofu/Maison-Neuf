@@ -98,7 +98,11 @@
   .desk-room{ font-weight:700; color:var(--ink) }
   .desk-name{ font-size:10.5px; color:var(--ink-soft) }
   .desk[data-state="working"] .desk-label{ background:#fff8df; box-shadow:0 0 12px #ffd36d; border-radius:5px }
-  .sprite[data-state="away"]{ opacity:.35 }
+  .sprite[data-state="away"]{ opacity:.65; filter:saturate(.45) }
+  .desk[data-state="away"] .desk-label{ background:#e9e3d8; border:1px solid #aaa08e; border-radius:5px }
+  .desk[data-state="away"] .desk-name{ color:#574f44 }
+  .desk[data-state="working"] .desk-name{ color:#65430e }
+  .desk[data-state="working"] .desk-state{ color:#285127 }
   .desk-state{ font-size:10px; font-weight:700 }
   .desk-state::before{ content:" · " }
   .accent-dot{
