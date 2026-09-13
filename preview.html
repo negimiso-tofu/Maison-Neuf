@@ -333,6 +333,9 @@ backgroundImage.onerror = () => stage.classList.remove("has-background");
 backgroundImage.src = "background.png";
 let liveMode = false;
 let modeGeneration = 0;
+const motionPreference = typeof matchMedia === "function"
+  ? matchMedia("(prefers-reduced-motion: reduce)") : null;
+let reducedMotion = motionPreference?.matches ?? false;
 
 function makeAgent(def){
   const home = { x: COL_X[def.col], y: ROW_Y[def.row] };
@@ -384,7 +387,7 @@ function makeAgent(def){
   function walkTo(targetX, targetY = pos.y){
     const generation = modeGeneration;
     const epoch = self.motionEpoch;
-    if (liveMode && self.state === "away") return Promise.resolve();
+    if (reducedMotion || (liveMode && self.state === "away")) return Promise.resolve();
     self.walking = true;
     return new Promise(resolve=>{
       const stop = () => { if (epoch === self.motionEpoch) self.walking = false; resolve(); };
@@ -456,6 +459,12 @@ async function agentLoop(me){
     const interrupted = () => epoch !== me.motionEpoch;
     const state = liveMode ? (me.state || "away") : "demo";
 
+    if (reducedMotion){
+      me.syncPose();
+      await sleep(2000);
+      continue;
+    }
+
     // 退室中：席に戻して動かさない
     if (state === "away"){
       if (me.pos.x !== me.home.x || me.pos.y !== me.home.y){
@@ -504,6 +513,11 @@ async function agentLoop(me){
 }
 
 Object.values(agents).forEach(agentLoop);
+motionPreference?.addEventListener("change", event => {
+  if (reducedMotion === event.matches) return;
+  reducedMotion = event.matches;
+  resetMotion();
+});
 
 const STATE_LABELS = {working:"稼働中", idle:"待機中", away:"退室中"};
 let centerOpen = false;
@@ -621,19 +635,25 @@ function validateStatus(data, now = Date.now()){
 function changeMode(live){
   if (live === liveMode) return;
   liveMode = live;
-  modeGeneration++;   // 走っている歩行ループを打ち切り、全員を席に戻す
   for (const me of Object.values(agents)){
-    me.motionEpoch++;
-    me.pos.x = me.home.x; me.pos.y = me.home.y; me.place();
-    me.bub.classList.remove("show");
-    me.walking = false;
     if (!live){
       me.state = null;
       delete me.spr.dataset.state; delete me.desk.dataset.state;
       me.stateLabel.textContent = "デモ";
       me.spr.setAttribute("aria-label", `${me.def.name}：デモ`);
     }
-    me.poseIdle();
+  }
+  resetMotion();
+}
+
+function resetMotion(){
+  modeGeneration++; // 古いループと歩行を止め、新しい設定で席から再開する
+  for (const me of Object.values(agents)){
+    me.motionEpoch++;
+    me.pos.x = me.home.x; me.pos.y = me.home.y; me.place();
+    me.bub.classList.remove("show");
+    me.walking = false;
+    me.syncPose();
   }
   Object.values(agents).forEach(agentLoop);
 }
