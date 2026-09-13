@@ -181,6 +181,43 @@ async function testLiveMotion(code, element, initiallyReduced = false){
   run(`for(const record of Object.values(snapshot.agents)) record.state='away'; applyStatus(snapshot);`);
   allHome();
   await advance(15000, allHome);
+  run(`for(const record of Object.values(snapshot.agents)) record.state='working'; applyStatus(snapshot);
+    const firstVisit = reserveVisit(agents.verity, agents.clarice);
+    const secondVisit = reserveVisit(agents.aurelia, agents.clarice);`);
+  assert.equal(run('firstVisit.x !== secondVisit.x'), true);
+  assert.equal(run('reserveVisit(agents.sylvia, agents.clarice)'), null, 'Third visitor must skip a full desk');
+  // An old async cleanup must not release a newer reservation for the same slot.
+  run(`releaseVisit(agents.verity, firstVisit);
+    const replacement = reserveVisit(agents.verity, agents.clarice);
+    releaseVisit(agents.verity, firstVisit);`);
+  assert.equal(run('visitSlots.get(replacement.key) === replacement'), true);
+  run(`snapshot.agents.clarice.state='away'; applyStatus(snapshot);`);
+  assert.equal(run('visitSlots.size'), 0, 'Host departure cancels visitors and releases their slots');
+  allHome();
+  run(`snapshot.agents.clarice.state='working'; applyStatus(snapshot);
+    reserveVisit(agents.verity, agents.clarice);
+    snapshot.agents.verity.state='away'; applyStatus(snapshot);`);
+  assert.equal(run('visitSlots.size'), 0, 'Visitor departure releases its slot');
+  run(`snapshot.agents.verity.state='working'; applyStatus(snapshot);
+    reserveVisit(agents.verity, agents.clarice);`);
+  changeMotion(true);
+  assert.equal(run('visitSlots.size'), 0, 'Reduced motion clears reservations');
+  changeMotion(false);
+  run(`reserveVisit(agents.verity, agents.clarice); changeMode(false);`);
+  assert.equal(run('visitSlots.size'), 0, 'Mode changes clear reservations');
+  // Ten simulated minutes per mode, forcing every random choice toward the same desks.
+  for(const live of [false, true]){
+    if(live) run('applyStatus(snapshot)');
+    let arrivals = 0;
+    await advance(600000, ()=>{
+      const stopped = JSON.parse(run('JSON.stringify(Object.values(agents).filter(a=>!a.walking).map(a=>[a.pos.x,a.pos.y]))'));
+      assert.equal(new Set(stopped.map(p=>p.join(','))).size, stopped.length, 'Stationary agents must have distinct coordinates');
+      assert.equal(run('Object.values(agents).every(a=>!a.visit || visitSlots.get(a.visit.key)===a.visit)'), true);
+      if(run('Object.values(agents).some(a=>a.visit && !a.walking && a.pos.x===a.visit.x && a.pos.y===a.visit.y)')) arrivals++;
+    });
+    assert.ok(arrivals > 0, 'Visitors must actually arrive during the collision test');
+  }
+  console.log('PASS: two visitor slots, safe cancellation, ten-minute stationary collision checks in demo and live modes');
   console.log('PASS: live away agents remain home; walking agents preserve measured poses');
   console.log('PASS: reduced motion at load and during walking; states preserved; visits resume');
 }

@@ -449,6 +449,33 @@ function mates(me){
 /* 訪ね歩く頻度。実測表示では「動きの量」が実際の稼働の濃さに対応する。
    稼働中はよく出歩き、待機中はたまに、退室中は席を外していて動かない。 */
 const VISIT_CHANCE = { demo:0.75, working:0.55, idle:0.25, away:0 };
+const visitSlots = new Map();
+function reserveVisit(me, target){
+  if (me.visit || reducedMotion || (liveMode && (me.state === "away" || target.state === "away"))) return null;
+  const preferred = target.home.x > me.home.x ? -64 : 64;
+  for (const side of [preferred, -preferred]){
+    const key = `${target.def.id}:${side}`;
+    if (visitSlots.has(key)) continue;
+    const visit = {key, target, x:target.home.x + side, y:target.home.y};
+    visitSlots.set(key, visit);
+    me.visit = visit;
+    return visit;
+  }
+  return null;
+}
+function releaseVisit(me, visit = me.visit){
+  if (!visit) return;
+  if (visitSlots.get(visit.key) === visit) visitSlots.delete(visit.key);
+  if (me.visit === visit) me.visit = null;
+}
+function cancelAgentMotion(me){
+  me.motionEpoch++;
+  releaseVisit(me);
+  me.walking = false;
+  me.pos.x = me.home.x; me.pos.y = me.home.y; me.place();
+  me.bub.classList.remove("show");
+  me.syncPose();
+}
 
 async function agentLoop(me){
   const generation = modeGeneration;
@@ -490,8 +517,9 @@ async function agentLoop(me){
       const others = mates(me).filter(other => !liveMode || other.state !== "away");
       if (others.length){
         const target = pick(others);
-        const side = target.home.x > me.home.x ? -64 : 64;
-        await me.walkTo(target.home.x + side, target.home.y);
+        const visit = reserveVisit(me, target);
+        if (visit) try {
+        await me.walkTo(visit.x, visit.y);
         if (cancelled()) return;
         if (interrupted()) continue;
         me.say(pick(me.def.lines));
@@ -505,6 +533,9 @@ async function agentLoop(me){
         await me.walkTo(me.home.x, me.home.y);
         if (cancelled()) return;
         target.syncPose();
+        } finally {
+          releaseVisit(me, visit);
+        }
       }
     }
 
@@ -649,11 +680,7 @@ function changeMode(live){
 function resetMotion(){
   modeGeneration++; // 古いループと歩行を止め、新しい設定で席から再開する
   for (const me of Object.values(agents)){
-    me.motionEpoch++;
-    me.pos.x = me.home.x; me.pos.y = me.home.y; me.place();
-    me.bub.classList.remove("show");
-    me.walking = false;
-    me.syncPose();
+    cancelAgentMotion(me);
   }
   Object.values(agents).forEach(agentLoop);
 }
@@ -664,10 +691,10 @@ function applyStatus(data){
   for (const def of ROSTER){
     const me = agents[def.id], record = data.agents[def.id];
     if (record.state === "away" && me.state !== "away"){
-      me.motionEpoch++;
-      me.walking = false;
-      me.pos.x = me.home.x; me.pos.y = me.home.y; me.place();
-      me.bub.classList.remove("show");
+      cancelAgentMotion(me);
+      for (const visitor of Object.values(agents)){
+        if (visitor.visit?.target === me) cancelAgentMotion(visitor);
+      }
     }
     me.state = record.state;
     me.spr.dataset.state = me.desk.dataset.state = record.state;
