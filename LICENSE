@@ -1,24 +1,17 @@
-MIT License
-
 Copyright (c) 2026 ねぎみそとうふ (negimisotofu)
+All Rights Reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+本リポジトリはポートフォリオとして公開しています。
+コード・画像（png/ 内の素材を含む）を閲覧・参考にしていただくことは自由です。
+個人的な学習・検証目的で、ローカルで動かして試すこともご自由にどうぞ。
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+ただし、著作権者の事前の許可なく以下を行うことはご遠慮ください。
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+- 本ソフトウェアの全部または一部を複製・再配布すること
+- 商用目的で使用すること
+- 改変した派生物を公開・配布すること
+
+ご利用のご相談は、公開しているポートフォリオサイトの Contact よりお願いいたします。
 
 ---
 
@@ -26,6 +19,6 @@ NOTE ON ARTWORK
 
 The character portraits, pixel sprites and interior background in this
 repository (png/) were produced with a generative image model and then
-processed by the author. They are covered by the same MIT terms as the code,
-but please check the terms of your own image provider before reusing them in
-your own work.
+processed by the author. The same "view and reference only" terms above
+apply to this artwork. Please check the terms of your own image provider
+before using a similar generation workflow.

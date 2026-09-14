@@ -1,5 +1,8 @@
 # Munder Difflin
 
+ファビコンはクラリスの元スプライトを切り抜いた「ドット絵の顔アップ」案を採用。
+`png/favicon_pixel_v1_16.png` と `png/favicon_pixel_v1_512.png` を使用する。元画像と比較候補は保管。
+
 AIコーディングエージェント（Claude／Codex）とGPT画像生成を「AI社員」に見立て、
 仮想オフィスで働く様子を眺めるツール。メイド版。
 
@@ -9,7 +12,7 @@ AIコーディングエージェント（Claude／Codex）とGPT画像生成を�
 
 - 設計の詳細は [`DESIGN.md`](./DESIGN.md) を参照
 - 扱うデータと公開時の注意は [`SECURITY.md`](./SECURITY.md) を参照
-- ライセンスは [`LICENSE`](./LICENSE)（MIT）
+- ライセンスは [`LICENSE`](./LICENSE)（閲覧・参考は自由、複製・商用利用・再配布は不可）
 - `preview.html` — 9名の稼働表示。監視データがないときは訪問し合うデモ
 - `watcher.py` — Claudeのツール・スキル、CodexのDB更新、画像出現を監視
 - `png/` — キャラクター画像・内装背景
