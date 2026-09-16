@@ -1,4 +1,4 @@
-# Munder Difflin
+# Maison Neuf
 
 ファビコンはクラリスの元スプライトを切り抜いた「ドット絵の顔アップ」案を採用。
 `png/favicon_pixel_v1_16.png` と `png/favicon_pixel_v1_512.png` を使用する。元画像と比較候補は保管。
@@ -145,7 +145,7 @@ PythonテストはマスターのPowerShell（Python 3.13.15）で10件すべて
 
 自動登録は行っていない。必要な場合にユーザーがWindowsのタスクスケジューラで登録する。
 
-1. 「基本タスクの作成」で名前を `Munder Difflin watcher` にする。
+1. 「基本タスクの作成」で名前を `Maison Neuf watcher` にする。
 2. トリガーを「ログオン時」、操作を「プログラムの開始」にする。
 3. プログラムに自分の `python.exe` のフルパスを指定する（`where python` で調べられる）。
 4. 引数に `watcher.py` を指定する（画像フォルダは `image_dir.txt` で設定する）。

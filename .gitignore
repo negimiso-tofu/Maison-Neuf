@@ -8,3 +8,13 @@ __pycache__/
 
 # ローカル設定（個人のフォルダパスを公開リポジトリに入れないため）
 image_dir.txt
+
+# ファビコンの比較用ドラフト（採用は favicon_pixel_v1 のみ。他は保管用で公開対象外）
+favicon-original-options.html
+favicon-pixel-options.html
+png/favicon_original_v1_*
+png/favicon_original_v2_*
+png/favicon_original_v3_*
+png/favicon_pixel_v2_*
+png/favicon_pixel_v3_*
+png/favicon_portrait_*

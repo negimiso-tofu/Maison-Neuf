@@ -1,15 +1,15 @@
 @echo off
 rem ===================================================================
-rem  Munder Difflin launcher
+rem  Maison Neuf launcher
 rem  NOTE: keep this file ASCII-only. cmd.exe reads .bat as the system
 rem        codepage (CP932 here), so UTF-8 Japanese text corrupts the
 rem        commands themselves. Japanese belongs in README.md, not here.
 rem ===================================================================
 cd /d "%~dp0"
-title Munder Difflin launcher
+title Maison Neuf launcher
 
 echo.
-echo   Munder Difflin
+echo   Maison Neuf
 echo   ------------------------------
 echo.
 
@@ -31,7 +31,7 @@ if "%WATCHER%"=="1" (
     echo   [1/2] watcher ... already running
 ) else (
     echo   [1/2] watcher ... starting
-    start "Munder Difflin - watcher" python watcher.py %IMAGE_ARG%
+    start "Maison Neuf - watcher" python watcher.py %IMAGE_ARG%
 )
 
 rem --- server: skip if port 8744 is already listening ---
@@ -42,7 +42,7 @@ if "%SERVER%"=="1" (
     echo   [2/2] server  ... already running
 ) else (
     echo   [2/2] server  ... starting
-    start "Munder Difflin - server" python -m http.server 8744 --bind 127.0.0.1
+    start "Maison Neuf - server" python -m http.server 8744 --bind 127.0.0.1
 )
 
 timeout /t 3 /nobreak >nul
