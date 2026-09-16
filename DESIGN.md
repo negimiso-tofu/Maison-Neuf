@@ -306,4 +306,4 @@ preview.html が数秒おきに fetch('status.json') → ROSTERの状態へ反�
 
 ---
 
-関連メモリ：`project_munder_difflin_office.md`（進捗の正本）／ `persona_ai_team_names.md`（AIチームの呼び名）
+関連メモリ：`project_maison_neuf_office.md`（旧名 `project_munder_difflin_office.md`。進捗の正本）／ `persona_ai_team_names.md`（AIチームの呼び名）

@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "munder-difflin-preview",
+      "name": "maison-neuf-preview",
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8743"],
       "port": 8743
